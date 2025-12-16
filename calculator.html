@@ -323,6 +323,12 @@
 	<div class="layout">
 		<aside class="guide" aria-label="Guide and Key">
 			<div class="guide-block">
+				<div class="guide-subtitle">Outputs <span class="accent">Explained</span></div>
+				<ul class="key-list" id="outputsGuide">
+					<li><span class="key-label">AP Outputs:</span> Hours Recovered, FTE Capacity, Percent Workflow Automated, Percent Invoices Touchless, AP Close Days Reduced.</li>
+				</ul>
+			</div>
+			<div class="guide-block">
 				<div class="guide-subtitle">Inputs <span class="accent">Explained</span></div>
 				<ul class="key-list">
 					<li><span class="key-label">Transactions per Month:</span> Total monthly transaction volume you expect the agent to touch.</li>
@@ -335,14 +341,6 @@
 					<li><span class="key-label">Touchless / Reviewed Time Saved %:</span> Estimated time reduction on the portions covered by the agent.</li>
 					<li><span class="key-label">Expected vs Minimum Accuracy %:</span> Savings are shown only when Expected Accuracy meets or exceeds the Minimum threshold.</li>
 					<li><span class="key-label">Ramp (Month 1 / 2 / 3+):</span> How quickly you assume recovered hours materialize over the first three months.</li>
-				</ul>
-			</div>
-			<div class="guide-block">
-				<div class="guide-subtitle">Outputs <span class="accent">Explained</span></div>
-				<ul class="key-list">
-					<li><span class="key-label">AP Outputs:</span> Hours Recovered, FTE Capacity, Percent Workflow Automated, Percent Invoices Touchless, AP Close Days Reduced.</li>
-					<li><span class="key-label">AR Outputs:</span> Hours Recovered, FTE Capacity, Percent Workflow Automated, DSO Days Reduced, Cash Unlocked per Month.</li>
-					<li><span class="key-label">Reconciliation Outputs:</span> Hours Recovered, FTE Capacity, Percent Workflow Automated, Close Days Reduced, Percent Transactions Auto-Matched.</li>
 				</ul>
 			</div>
 		</aside>
@@ -419,7 +417,7 @@
 				<button class="secondary" disabled aria-disabled="true" aria-hidden="true" tabindex="-1" style="visibility: hidden;">&nbsp;</button>
 
 				<button class="wide" data-digit="0">0</button>
-				<button class="accent wide" id="calc"><span class="calc-label">= Calculate</span></button>
+				<button class="accent wide" id="calc"><span class="calc-label">Calculate</span></button>
 			</div>
 
 			<div class="mini">
@@ -499,6 +497,7 @@
 		const activeFieldLabelEl = document.getElementById("activeFieldLabel");
 		const activeFieldValueEl = document.getElementById("activeFieldValue");
 		const resultsEl = document.getElementById("results");
+		const outputsGuideEl = document.getElementById("outputsGuide");
 		const noteLineEl = document.getElementById("noteLine");
 
 		function renderPlaceholder() {
@@ -547,6 +546,37 @@
 		}
 		function fmtMoney(n) {
 			return new Intl.NumberFormat(undefined, { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(n);
+		}
+
+		function renderOutputsGuide() {
+			if (!outputsGuideEl) return;
+			if (state.workflow === "AR") {
+				outputsGuideEl.innerHTML = `
+					<li><span class="key-label">Hours Recovered per Period:</span> Operational hours saved (capacity, not headcount).</li>
+					<li><span class="key-label">FTE Capacity Recovered:</span> Hours recovered ÷ 160 hours per FTE-month.</li>
+					<li><span class="key-label">Percent Workflow Automated:</span> Touchless + Reviewed coverage that the agent handles.</li>
+					<li><span class="key-label">DSO Days Reduced:</span> Estimated reduction in days sales outstanding from faster, cleaner AR.</li>
+					<li><span class="key-label">Cash Unlocked per Month:</span> Working capital released from the DSO improvement (conservative invoice value assumed).</li>
+				`;
+				return;
+			}
+			if (state.workflow === "RECON") {
+				outputsGuideEl.innerHTML = `
+					<li><span class="key-label">Hours Recovered per Period:</span> Operational hours saved (capacity, not headcount).</li>
+					<li><span class="key-label">FTE Capacity Recovered:</span> Hours recovered ÷ 160 hours per FTE-month.</li>
+					<li><span class="key-label">Percent Workflow Automated:</span> Touchless + Reviewed coverage that the agent handles.</li>
+					<li><span class="key-label">Close Days Reduced:</span> Fewer days needed to close due to higher auto-match rates.</li>
+					<li><span class="key-label">Percent Transactions Auto-Matched:</span> Portion of transactions reconciled without manual touch.</li>
+				`;
+				return;
+			}
+			outputsGuideEl.innerHTML = `
+				<li><span class="key-label">Hours Recovered per Period:</span> Operational hours saved (capacity, not headcount).</li>
+				<li><span class="key-label">FTE Capacity Recovered:</span> Hours recovered ÷ 160 hours per FTE-month.</li>
+				<li><span class="key-label">Percent Workflow Automated:</span> Touchless + Reviewed coverage that the agent handles.</li>
+				<li><span class="key-label">Percent Invoices Touchless:</span> Portion of invoices processed without manual intervention.</li>
+				<li><span class="key-label">AP Close Days Reduced:</span> Estimated days removed from the AP close due to automation.</li>
+			`;
 		}
 
 		function normalizeCoverage() {
@@ -683,6 +713,7 @@
 	workflowEl.addEventListener("change", () => {
 		state.workflow = workflowEl.value;
 		resultsEl.innerHTML = renderPlaceholder();
+		renderOutputsGuide();
 		calculate();
 	});
 
@@ -734,14 +765,15 @@
 			calculate();
 		});
 
-		document.getElementById("calc").addEventListener("click", () => {
-			commitEntry();
-			calculate();
-		});
-
-		// init
-		setActiveField(activeField);
+	document.getElementById("calc").addEventListener("click", () => {
+		commitEntry();
 		calculate();
+	});
+
+	// init
+	setActiveField(activeField);
+	renderOutputsGuide();
+	calculate();
 	</script>
 </body>
 </html>
