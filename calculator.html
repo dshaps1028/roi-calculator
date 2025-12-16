@@ -164,6 +164,13 @@
 			border-color: var(--primary-strong);
 			box-shadow: 0 14px 32px rgba(33, 43, 196, 0.32);
 		}
+		#calc .calc-label {
+			background: linear-gradient(180deg, #f0f2ff, #f9faff);
+			-webkit-background-clip: text;
+			background-clip: text;
+			-webkit-text-fill-color: transparent;
+			color: transparent;
+		}
 		button.danger {
 			background: #ffe1de;
 			border-color: #ffc7c2;
@@ -204,50 +211,46 @@
 			<div class="pill">
 				Workflow
 				<select id="workflow">
-					<option value="AP">AP</option>
-					<option value="AR">AR</option>
-					<option value="RECON">Recon</option>
+					<option value="AP">Accounts Payable (AP)</option>
+					<option value="AR">Accounts Receivable (AR)</option>
+					<option value="RECON">Reconciliation</option>
 				</select>
-			</div>
-			<div class="pill">
-				<span class="muted">Accuracy gate:</span>
-				<span id="gateStatus" class="kbd">ON</span>
 			</div>
 		</div>
 
 		<div class="display" aria-live="polite">
 			<div class="sub kbd" id="results">
-				<div>Hours recovered (steady): —</div>
-				<div>FTE capacity: —</div>
-				<div>Annual cost equivalent: —</div>
-				<div>Ramp (M1/M2/M3+): —</div>
+				<div>Hours Recovered (Steady): —</div>
+				<div>Full-Time Equivalent Capacity: —</div>
+				<div>Annual Cost Equivalent: —</div>
+				<div>Ramp (Month 1 / Month 2 / Month 3+): —</div>
 			</div>
 		</div>
 
 		<div class="input-window" aria-live="polite">
-			<div class="label" id="activeFieldLabel">Active input: Transactions / month</div>
+			<div class="label" id="activeFieldLabel">Active Input: Transactions per Month</div>
 			<div class="value kbd" id="activeFieldValue">3000</div>
 		</div>
 
 		<!-- calculator-like buttons: choose which input you're editing -->
 		<div class="grid">
-			<button class="secondary" data-field="transactions_per_month">Txn/mo</button>
-			<button class="secondary" data-field="minutes_per_txn">Min/txn</button>
+			<button class="secondary" data-field="transactions_per_month">Txn/Month</button>
+			<button class="secondary" data-field="minutes_per_txn">Min/Txn</button>
 			<button class="secondary" data-field="exception_rate_pct">Exc %</button>
-			<button class="secondary" data-field="minutes_per_exception">Min/exc</button>
+			<button class="secondary" data-field="minutes_per_exception">Min/Exc</button>
 
-			<button class="secondary" data-field="review_hours_per_month">Review hrs</button>
-			<button class="secondary" data-field="hourly_cost">$/hr</button>
+			<button class="secondary" data-field="review_hours_per_month">Review Hrs</button>
+			<button class="secondary" data-field="hourly_cost">$/Hr</button>
 			<button class="secondary" data-field="touchless_pct">Touchless %</button>
 			<button class="secondary" data-field="reviewed_pct">Reviewed %</button>
 
-			<button class="secondary" data-field="touchless_reduction_pct">TL save %</button>
-			<button class="secondary" data-field="reviewed_reduction_pct">RV save %</button>
-			<button class="secondary" data-field="expected_accuracy_pct">Agent acc %</button>
-			<button class="secondary" data-field="min_accuracy_pct">Min acc %</button>
+			<button class="secondary" data-field="touchless_reduction_pct">TL Save %</button>
+			<button class="secondary" data-field="reviewed_reduction_pct">RV Save %</button>
+			<button class="secondary" data-field="expected_accuracy_pct">Agent Acc %</button>
+			<button class="secondary" data-field="min_accuracy_pct">Min Acc %</button>
 
 			<button class="danger wide" id="clear">AC</button>
-			<button class="accent wide" id="calc">= Calculate</button>
+			<button class="accent wide" id="calc"><span class="calc-label">= Calculate</span></button>
 
 			<!-- numeric keypad -->
 			<button data-digit="7">7</button>
@@ -263,7 +266,7 @@
 			<button data-digit="1">1</button>
 			<button data-digit="2">2</button>
 			<button data-digit="3">3</button>
-			<button class="secondary" id="gateLocked" disabled aria-disabled="true">Gate on</button>
+			<button class="secondary" disabled aria-disabled="true" aria-hidden="true" tabindex="-1" style="visibility: hidden;">&nbsp;</button>
 
 			<button class="wide" data-digit="0">0</button>
 			<button class="secondary wide" id="setDefaults">Defaults</button>
@@ -272,7 +275,7 @@
 		<div class="mini">
 			<div class="row">
 				<span class="muted">Notes:</span>
-				<span class="kbd" id="noteLine">Conservative assumptions. Capacity recovered ≠ headcount reduction.</span>
+				<span class="kbd" id="noteLine">Conservative Assumptions. Capacity Recovered ≠ Headcount Reduction.</span>
 			</div>
 		</div>
 	</div>
@@ -314,19 +317,19 @@
 		let state = structuredClone(DEFAULTS);
 
 		const fieldLabels = {
-			transactions_per_month: "Transactions / month",
-			minutes_per_txn: "Minutes per transaction (happy path)",
-			exception_rate_pct: "Exception rate (%)",
-			minutes_per_exception: "Minutes per exception",
-			review_hours_per_month: "Review hours / month",
-			hourly_cost: "Fully loaded $/hour",
+			transactions_per_month: "Transactions per Month",
+			minutes_per_txn: "Minutes per Transaction (Happy Path)",
+			exception_rate_pct: "Exception Rate (%)",
+			minutes_per_exception: "Minutes per Exception",
+			review_hours_per_month: "Review Hours per Month",
+			hourly_cost: "Fully Loaded $/Hour",
 			touchless_pct: "Touchless (%)",
 			reviewed_pct: "Reviewed (%)",
 			manual_pct: "Manual (%)",
-			touchless_reduction_pct: "Touchless time saved (%)",
-			reviewed_reduction_pct: "Reviewed time saved (%)",
-			expected_accuracy_pct: "Expected agent accuracy (%)",
-			min_accuracy_pct: "Minimum acceptable accuracy (%)"
+			touchless_reduction_pct: "Touchless Time Saved (%)",
+			reviewed_reduction_pct: "Reviewed Time Saved (%)",
+			expected_accuracy_pct: "Expected Agent Accuracy (%)",
+			min_accuracy_pct: "Minimum Acceptable Accuracy (%)"
 		};
 
 		let activeField = "transactions_per_month";
@@ -337,13 +340,12 @@
 		const activeFieldLabelEl = document.getElementById("activeFieldLabel");
 		const activeFieldValueEl = document.getElementById("activeFieldValue");
 		const resultsEl = document.getElementById("results");
-		const gateStatusEl = document.getElementById("gateStatus");
 		const noteLineEl = document.getElementById("noteLine");
 
 		function setActiveField(field) {
 			activeField = field;
 			entryBuffer = String(state[field]);
-			activeFieldLabelEl.textContent = "Active input: " + (fieldLabels[field] || field);
+			activeFieldLabelEl.textContent = "Active Input: " + (fieldLabels[field] || field);
 			activeFieldValueEl.textContent = entryBuffer;
 		}
 
@@ -369,13 +371,14 @@
 			state.manual_pct = manual;
 		}
 
-		function validate() {
-			const errs = [];
-			const pctFields = [
-				"exception_rate_pct",
-				"touchless_pct",
-				"reviewed_pct",
-				"manual_pct",
+	function validate() {
+		const errs = [];
+		const labelFor = field => fieldLabels[field] || field.replace(/_/g, " ");
+		const pctFields = [
+			"exception_rate_pct",
+			"touchless_pct",
+			"reviewed_pct",
+			"manual_pct",
 				"touchless_reduction_pct",
 				"reviewed_reduction_pct",
 				"expected_accuracy_pct",
@@ -383,28 +386,28 @@
 				"ramp_m1_pct",
 				"ramp_m2_pct",
 				"ramp_m3_pct"
-			];
-			pctFields.forEach(f => {
-				const v = Number(state[f]);
-				if (Number.isFinite(v) && (v < 0 || v > 100)) errs.push(`${f} must be 0–100`);
-			});
-			if (state.transactions_per_month < 0) errs.push("transactions_per_month must be ≥ 0");
-			if (state.minutes_per_txn < 0) errs.push("minutes_per_txn must be ≥ 0");
-			if (state.minutes_per_exception < 0) errs.push("minutes_per_exception must be ≥ 0");
-			if (state.review_hours_per_month < 0) errs.push("review_hours_per_month must be ≥ 0");
-			if (state.hourly_cost < 0) errs.push("hourly_cost must be ≥ 0");
+		];
+		pctFields.forEach(f => {
+			const v = Number(state[f]);
+			if (Number.isFinite(v) && (v < 0 || v > 100)) errs.push(`${labelFor(f)} Must Be 0–100`);
+		});
+		if (state.transactions_per_month < 0) errs.push(`${labelFor("transactions_per_month")} Must Be ≥ 0`);
+		if (state.minutes_per_txn < 0) errs.push(`${labelFor("minutes_per_txn")} Must Be ≥ 0`);
+		if (state.minutes_per_exception < 0) errs.push(`${labelFor("minutes_per_exception")} Must Be ≥ 0`);
+		if (state.review_hours_per_month < 0) errs.push(`${labelFor("review_hours_per_month")} Must Be ≥ 0`);
+		if (state.hourly_cost < 0) errs.push(`${labelFor("hourly_cost")} Must Be ≥ 0`);
 
 			// Coverage should not exceed 100 between tl + rv (manual derived)
-			if (state.touchless_pct + state.reviewed_pct > 100) errs.push("Touchless% + Reviewed% must be ≤ 100");
-			return errs;
-		}
+		if (state.touchless_pct + state.reviewed_pct > 100) errs.push("Touchless % + Reviewed % Must Be ≤ 100");
+		return errs;
+	}
 
 		function calculate() {
 			normalizeCoverage();
 			const errs = validate();
 			if (errs.length) {
 				resultsEl.innerHTML = errs.map(e => `<div>⚠️ ${e}</div>`).join("");
-				noteLineEl.textContent = "Fix inputs and recalculate.";
+				noteLineEl.textContent = "Fix Inputs and Recalculate.";
 				return;
 			}
 
@@ -446,18 +449,17 @@
 			const fte = recoveredHoursGated / state.hours_per_fte_month;
 			const annual = recoveredHoursGated * state.hourly_cost * 12;
 
-			gateStatusEl.textContent = "ON";
 			noteLineEl.textContent = gateApplies
-				? `Accuracy gate ON: expected ${state.expected_accuracy_pct}% < min ${state.min_accuracy_pct}%, savings shown as $0.`
-				: "Capacity recovered ≠ headcount reduction. Assumptions are conservative.";
+				? `Expected Accuracy ${state.expected_accuracy_pct}% Is Below Minimum ${state.min_accuracy_pct}%; Savings Are Set to $0.`
+				: "Capacity Recovered ≠ Headcount Reduction. Assumptions Are Conservative.";
 
 			resultsEl.innerHTML = `
-				<div>Hours recovered (steady): <b>${fmtNum(recoveredHoursGated, 0)}</b> / mo</div>
-				<div>FTE capacity: <b>${fmtNum(fte, 2)}</b></div>
-				<div>Annual cost equivalent: <b>${fmtMoney(annual)}</b></div>
-				<div>Automation rate: <b>${fmtNum(state.touchless_pct + state.reviewed_pct, 0)}%</b> (manual ${fmtNum(state.manual_pct, 0)}%)</div>
-				<div>Ramp (M1/M2/M3+): <b>${fmtNum(m1, 0)}</b> / <b>${fmtNum(m2, 0)}</b> / <b>${fmtNum(m3, 0)}</b> hrs</div>
-				<div class="muted">Baseline hrs/mo: ${fmtNum(baselineHours, 0)} · Post hrs/mo: ${fmtNum(baselineHours - recoveredHoursGated, 0)}</div>
+				<div>Hours Recovered (Steady): <b>${fmtNum(recoveredHoursGated, 0)}</b> per Month</div>
+				<div>Full-Time Equivalent Capacity: <b>${fmtNum(fte, 2)}</b></div>
+				<div>Annual Cost Equivalent: <b>${fmtMoney(annual)}</b></div>
+				<div>Automation Rate: <b>${fmtNum(state.touchless_pct + state.reviewed_pct, 0)}%</b> (Manual ${fmtNum(state.manual_pct, 0)}%)</div>
+				<div>Ramp (Month 1 / Month 2 / Month 3+): <b>${fmtNum(m1, 0)}</b> / <b>${fmtNum(m2, 0)}</b> / <b>${fmtNum(m3, 0)}</b> Hours</div>
+				<div class="muted">Baseline Hours per Month: ${fmtNum(baselineHours, 0)} · Post Hours per Month: ${fmtNum(baselineHours - recoveredHoursGated, 0)}</div>
 			`;
 		}
 
@@ -503,13 +505,12 @@
 			workflowEl.value = state.workflow;
 			setActiveField("transactions_per_month");
 			resultsEl.innerHTML = `
-				<div>Hours recovered (steady): —</div>
-				<div>FTE capacity: —</div>
-				<div>Annual cost equivalent: —</div>
-				<div>Ramp (M1/M2/M3+): —</div>
+				<div>Hours Recovered (Steady): —</div>
+				<div>Full-Time Equivalent Capacity: —</div>
+				<div>Annual Cost Equivalent: —</div>
+				<div>Ramp (Month 1 / Month 2 / Month 3+): —</div>
 			`;
-			noteLineEl.textContent = "Conservative assumptions. Capacity recovered ≠ headcount reduction.";
-			gateStatusEl.textContent = "ON";
+			noteLineEl.textContent = "Conservative Assumptions. Capacity Recovered ≠ Headcount Reduction.";
 		});
 
 		document.getElementById("setDefaults").addEventListener("click", () => {
