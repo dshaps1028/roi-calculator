@@ -340,12 +340,9 @@
 			<div class="guide-block">
 				<div class="guide-subtitle">Outputs <span class="accent">Explained</span></div>
 				<ul class="key-list">
-					<li><span class="key-label">Hours Recovered (Steady):</span> Monthly hours saved after coverage, time-saved %, and the accuracy check.</li>
-					<li><span class="key-label">Full-Time Equivalent Capacity:</span> Recovered hours divided by 160 hours per FTE per month.</li>
-					<li><span class="key-label">Annual Cost Equivalent:</span> Recovered hours × hourly cost × 12 months.</li>
-					<li><span class="key-label">Automation Rate:</span> Total of Touchless % + Reviewed %; Manual is the remainder.</li>
-					<li><span class="key-label">Ramp by Month:</span> Month 1, Month 2, and Month 3+ savings based on your ramp assumptions.</li>
-					<li><span class="key-label">Baseline vs Post Hours:</span> Shows starting hours per month and hours after automation is applied.</li>
+					<li><span class="key-label">AP Outputs:</span> Hours Recovered, FTE Capacity, Percent Workflow Automated, Percent Invoices Touchless, AP Close Days Reduced.</li>
+					<li><span class="key-label">AR Outputs:</span> Hours Recovered, FTE Capacity, Percent Workflow Automated, DSO Days Reduced, Cash Unlocked per Month.</li>
+					<li><span class="key-label">Reconciliation Outputs:</span> Hours Recovered, FTE Capacity, Percent Workflow Automated, Close Days Reduced, Percent Transactions Auto-Matched.</li>
 				</ul>
 			</div>
 		</aside>
@@ -364,14 +361,15 @@
 				</div>
 			</div>
 
-			<div class="display" aria-live="polite">
-				<div class="sub kbd" id="results">
-					<div>Hours Recovered (Steady): —</div>
-					<div>Full-Time Equivalent Capacity: —</div>
-					<div>Annual Cost Equivalent: —</div>
-					<div>Ramp (Month 1 / Month 2 / Month 3+): —</div>
-				</div>
+		<div class="display" aria-live="polite">
+			<div class="sub kbd" id="results">
+				<div>Hours Recovered per Period: —</div>
+				<div>FTE Capacity Recovered: —</div>
+				<div>Percent Workflow Automated: —</div>
+				<div>Percent Invoices Touchless: —</div>
+				<div>AP Close Days Reduced: —</div>
 			</div>
+		</div>
 
 			<div class="input-window" aria-live="polite">
 				<div class="label" id="activeFieldLabel">Active Input: Transactions per Month</div>
@@ -467,6 +465,13 @@
 			hours_per_fte_month: 160
 		};
 
+		const ASSUMPTIONS = {
+			max_ap_close_days_reduced: 3,
+			max_ar_dso_reduction: 5,
+			max_recon_close_days_reduced: 3,
+			avg_invoice_value: 500 // conservative average value per transaction/invoice for AR cash unlocked
+		};
+
 		// --- State ---
 		let state = structuredClone(DEFAULTS);
 
@@ -495,6 +500,34 @@
 		const activeFieldValueEl = document.getElementById("activeFieldValue");
 		const resultsEl = document.getElementById("results");
 		const noteLineEl = document.getElementById("noteLine");
+
+		function renderPlaceholder() {
+			if (state.workflow === "AR") {
+				return `
+					<div>Hours Recovered per Period: —</div>
+					<div>FTE Capacity Recovered: —</div>
+					<div>Percent Workflow Automated: —</div>
+					<div>DSO Days Reduced: —</div>
+					<div>Cash Unlocked per Month: —</div>
+				`;
+			}
+			if (state.workflow === "RECON") {
+				return `
+					<div>Hours Recovered per Period: —</div>
+					<div>FTE Capacity Recovered: —</div>
+					<div>Percent Workflow Automated: —</div>
+					<div>Close Days Reduced: —</div>
+					<div>Percent Transactions Auto-Matched: —</div>
+				`;
+			}
+			return `
+				<div>Hours Recovered per Period: —</div>
+				<div>FTE Capacity Recovered: —</div>
+				<div>Percent Workflow Automated: —</div>
+				<div>Percent Invoices Touchless: —</div>
+				<div>AP Close Days Reduced: —</div>
+			`;
+		}
 
 		function setActiveField(field) {
 			activeField = field;
@@ -593,6 +626,7 @@
 			// Accuracy gate
 			const gateApplies = state.expected_accuracy_pct < state.min_accuracy_pct;
 			const recoveredHoursGated = gateApplies ? 0 : steadyRecoveredHours;
+			const gateMultiplier = gateApplies ? 0 : 1;
 
 			// Ramp
 			const m1 = recoveredHoursGated * (state.ramp_m1_pct / 100);
@@ -602,26 +636,55 @@
 			// Outputs
 			const fte = recoveredHoursGated / state.hours_per_fte_month;
 			const annual = recoveredHoursGated * state.hourly_cost * 12;
+			const percentAutomated = (state.touchless_pct + state.reviewed_pct) * gateMultiplier;
+			const percentTouchless = state.touchless_pct * gateMultiplier;
+
+			let resultsHtml = "";
+			if (state.workflow === "AP") {
+				const apCloseDaysReduced = Math.min(ASSUMPTIONS.max_ap_close_days_reduced, percentAutomated * 0.03);
+				resultsHtml = `
+					<div>Hours Recovered per Period: <b>${fmtNum(recoveredHoursGated, 0)}</b></div>
+					<div>FTE Capacity Recovered: <b>${fmtNum(fte, 2)}</b></div>
+					<div>Percent Workflow Automated: <b>${fmtNum(percentAutomated, 0)}%</b></div>
+					<div>Percent Invoices Touchless: <b>${fmtNum(percentTouchless, 0)}%</b></div>
+					<div>AP Close Days Reduced: <b>${fmtNum(apCloseDaysReduced, 1)}</b></div>
+				`;
+			} else if (state.workflow === "AR") {
+				const dsoDaysReduced = Math.min(ASSUMPTIONS.max_ar_dso_reduction, percentAutomated * 0.04);
+				const cashUnlocked = (dsoDaysReduced / 30) * state.transactions_per_month * ASSUMPTIONS.avg_invoice_value * gateMultiplier;
+				resultsHtml = `
+					<div>Hours Recovered per Period: <b>${fmtNum(recoveredHoursGated, 0)}</b></div>
+					<div>FTE Capacity Recovered: <b>${fmtNum(fte, 2)}</b></div>
+					<div>Percent Workflow Automated: <b>${fmtNum(percentAutomated, 0)}%</b></div>
+					<div>DSO Days Reduced: <b>${fmtNum(dsoDaysReduced, 1)}</b></div>
+					<div>Cash Unlocked per Month: <b>${fmtMoney(cashUnlocked)}</b></div>
+				`;
+			} else {
+				const closeDaysReduced = Math.min(ASSUMPTIONS.max_recon_close_days_reduced, percentAutomated * 0.03);
+				const percentAutoMatched = percentAutomated;
+				resultsHtml = `
+					<div>Hours Recovered per Period: <b>${fmtNum(recoveredHoursGated, 0)}</b></div>
+					<div>FTE Capacity Recovered: <b>${fmtNum(fte, 2)}</b></div>
+					<div>Percent Workflow Automated: <b>${fmtNum(percentAutomated, 0)}%</b></div>
+					<div>Close Days Reduced: <b>${fmtNum(closeDaysReduced, 1)}</b></div>
+					<div>Percent Transactions Auto-Matched: <b>${fmtNum(percentAutoMatched, 0)}%</b></div>
+				`;
+			}
 
 			noteLineEl.textContent = gateApplies
 				? `Expected Accuracy ${state.expected_accuracy_pct}% Is Below Minimum ${state.min_accuracy_pct}%; Savings Are Set to $0.`
 				: "Capacity Recovered ≠ Headcount Reduction. Assumptions Are Conservative.";
 
-			resultsEl.innerHTML = `
-				<div>Hours Recovered (Steady): <b>${fmtNum(recoveredHoursGated, 0)}</b> per Month</div>
-				<div>Full-Time Equivalent Capacity: <b>${fmtNum(fte, 2)}</b></div>
-				<div>Annual Cost Equivalent: <b>${fmtMoney(annual)}</b></div>
-				<div>Automation Rate: <b>${fmtNum(state.touchless_pct + state.reviewed_pct, 0)}%</b> (Manual ${fmtNum(state.manual_pct, 0)}%)</div>
-				<div>Ramp (Month 1 / Month 2 / Month 3+): <b>${fmtNum(m1, 0)}</b> / <b>${fmtNum(m2, 0)}</b> / <b>${fmtNum(m3, 0)}</b> Hours</div>
-				<div class="muted">Baseline Hours per Month: ${fmtNum(baselineHours, 0)} · Post Hours per Month: ${fmtNum(baselineHours - recoveredHoursGated, 0)}</div>
-			`;
+			resultsEl.innerHTML = resultsHtml;
 		}
 
 		// --- Wiring ---
-		workflowEl.value = state.workflow;
-		workflowEl.addEventListener("change", () => {
-			state.workflow = workflowEl.value;
-		});
+	workflowEl.value = state.workflow;
+	workflowEl.addEventListener("change", () => {
+		state.workflow = workflowEl.value;
+		resultsEl.innerHTML = renderPlaceholder();
+		calculate();
+	});
 
 		document.querySelectorAll("button[data-field]").forEach(btn => {
 			btn.addEventListener("click", () => {
@@ -658,12 +721,7 @@
 			state = structuredClone(DEFAULTS);
 			workflowEl.value = state.workflow;
 			setActiveField("transactions_per_month");
-			resultsEl.innerHTML = `
-				<div>Hours Recovered (Steady): —</div>
-				<div>Full-Time Equivalent Capacity: —</div>
-				<div>Annual Cost Equivalent: —</div>
-				<div>Ramp (Month 1 / Month 2 / Month 3+): —</div>
-			`;
+			resultsEl.innerHTML = renderPlaceholder();
 			noteLineEl.textContent = "Conservative Assumptions. Capacity Recovered ≠ Headcount Reduction.";
 		});
 
