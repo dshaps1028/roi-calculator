@@ -353,7 +353,7 @@
 				<button class="secondary" disabled aria-disabled="true" aria-hidden="true" tabindex="-1" style="visibility: hidden;">&nbsp;</button>
 
 				<button class="wide" data-digit="0">0</button>
-				<button class="secondary wide" id="setDefaults">Defaults</button>
+			<button class="secondary wide" id="setDefaults">Set Default Value</button>
 			</div>
 
 			<div class="mini">
@@ -599,9 +599,11 @@
 		});
 
 		document.getElementById("setDefaults").addEventListener("click", () => {
-			state = structuredClone(DEFAULTS);
-			workflowEl.value = state.workflow;
-			setActiveField(activeField);
+			if (DEFAULTS[activeField] !== undefined) {
+				state[activeField] = DEFAULTS[activeField];
+				entryBuffer = String(DEFAULTS[activeField]);
+				activeFieldValueEl.textContent = entryBuffer;
+			}
 			calculate();
 		});
 
