@@ -1,0 +1,505 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1" />
+	<title>Accounting AI Agent ROI Calculator</title>
+	<link rel="preconnect" href="https://fonts.googleapis.com" />
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+	<link href="https://fonts.googleapis.com/css2?family=Switzer:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+	<style>
+		:root {
+			color-scheme: light;
+			--primary: #212bc4;
+			--primary-strong: #222be0;
+			--bg: #f7f8fb;
+			--card: #ffffff;
+			--border: rgba(0, 0, 0, 0.08);
+			--muted: #5d6470;
+			--text: #0b0c10;
+		}
+		body {
+			font-family: "Switzer", "Inter", system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+			margin: 0;
+			padding: 24px;
+			background: radial-gradient(120% 90% at 12% 18%, #eef1ff 0, #f6f8ff 45%, #ffffff 100%);
+			color: var(--text);
+			display: grid;
+			place-items: center;
+		}
+		.calc {
+			width: min(520px, 94vw);
+			border-radius: 18px;
+			background: var(--card);
+			border: 1px solid var(--border);
+			box-shadow: 0 18px 50px rgba(16, 22, 38, 0.14);
+			padding: 18px;
+			color: var(--text);
+		}
+		.topbar {
+			display: flex;
+			gap: 10px;
+			align-items: center;
+			justify-content: space-between;
+			margin-bottom: 14px;
+		}
+		.pill {
+			font-size: 12px;
+			background: #f2f3f8;
+			color: var(--muted);
+			padding: 9px 12px;
+			border: 1px solid var(--border);
+			border-radius: 999px;
+			display: inline-flex;
+			gap: 8px;
+			align-items: center;
+			font-weight: 600;
+		}
+		.pill select {
+			background: transparent;
+			color: var(--text);
+			border: none;
+			outline: none;
+			font-weight: 700;
+		}
+		.display {
+			background: linear-gradient(180deg, #f0f2ff, #f9faff);
+			border: 1px solid rgba(33, 43, 196, 0.12);
+			border-radius: 16px;
+			padding: 16px;
+			min-height: 128px;
+			margin-bottom: 14px;
+			box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.65);
+		}
+		.display .label {
+			font-size: 12px;
+			color: var(--muted);
+			font-weight: 600;
+		}
+		.display .value {
+			color: var(--primary-strong);
+			font-size: 24px;
+			font-weight: 800;
+			margin: 8px 0 12px;
+		}
+		.display .sub {
+			font-size: 12px;
+			color: var(--text);
+			opacity: 0.92;
+			line-height: 1.35;
+			display: grid;
+			gap: 6px;
+		}
+		.grid {
+			display: grid;
+			grid-template-columns: repeat(4, 1fr);
+			gap: 10px;
+			margin-top: 12px;
+		}
+		button {
+			border: 1px solid var(--border);
+			border-radius: 12px;
+			padding: 12px 10px;
+			background: #f7f8fb;
+			color: var(--text);
+			font-size: 13px;
+			font-weight: 700;
+			cursor: pointer;
+			user-select: none;
+			transition: transform 0.02s ease, background 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+		}
+		button:hover {
+			border-color: rgba(33, 43, 196, 0.35);
+			box-shadow: 0 10px 22px rgba(16, 22, 38, 0.12);
+		}
+		button:active {
+			transform: translateY(1px);
+		}
+		button:focus-visible {
+			outline: 2px solid rgba(33, 43, 196, 0.5);
+			outline-offset: 2px;
+		}
+		button.secondary {
+			background: #eef0f5;
+		}
+		button.accent {
+			background: var(--primary);
+			border-color: var(--primary);
+			color: #000;
+			box-shadow: 0 12px 28px rgba(33, 43, 196, 0.28);
+		}
+		button.accent:hover {
+			background: var(--primary-strong);
+			border-color: var(--primary-strong);
+			box-shadow: 0 14px 32px rgba(33, 43, 196, 0.32);
+		}
+		button.danger {
+			background: #ffe1de;
+			border-color: #ffc7c2;
+			color: #7a1f1d;
+		}
+		button.wide {
+			grid-column: span 2;
+		}
+		.mini {
+			font-size: 11px;
+			color: var(--text);
+			opacity: 0.9;
+			line-height: 1.25;
+			margin-top: 12px;
+			background: #f5f6fb;
+			border: 1px solid var(--border);
+			border-radius: 14px;
+			padding: 10px;
+		}
+		.row {
+			display: flex;
+			justify-content: space-between;
+			gap: 12px;
+		}
+		.muted {
+			color: var(--muted);
+		}
+		.kbd {
+			font-variant-numeric: tabular-nums;
+			font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+		}
+	</style>
+</head>
+<body>
+	<div class="calc" role="application" aria-label="ROI Calculator">
+		<div class="topbar">
+			<div class="pill">
+				Workflow
+				<select id="workflow">
+					<option value="AP">AP</option>
+					<option value="AR">AR</option>
+					<option value="RECON">Recon</option>
+				</select>
+			</div>
+			<div class="pill">
+				<span class="muted">Accuracy gate:</span>
+				<span id="gateStatus" class="kbd">ON</span>
+			</div>
+		</div>
+
+		<div class="display" aria-live="polite">
+			<div class="label" id="activeFieldLabel">Active input: Transactions / month</div>
+			<div class="value kbd" id="activeFieldValue">3000</div>
+			<div class="sub kbd" id="results">
+				<div>Hours recovered (steady): —</div>
+				<div>FTE capacity: —</div>
+				<div>Annual cost equivalent: —</div>
+				<div>Ramp (M1/M2/M3+): —</div>
+			</div>
+		</div>
+
+		<!-- calculator-like buttons: choose which input you're editing -->
+		<div class="grid">
+			<button class="secondary" data-field="transactions_per_month">Txn/mo</button>
+			<button class="secondary" data-field="minutes_per_txn">Min/txn</button>
+			<button class="secondary" data-field="exception_rate_pct">Exc %</button>
+			<button class="secondary" data-field="minutes_per_exception">Min/exc</button>
+
+			<button class="secondary" data-field="review_hours_per_month">Review hrs</button>
+			<button class="secondary" data-field="hourly_cost">$/hr</button>
+			<button class="secondary" data-field="touchless_pct">Touchless %</button>
+			<button class="secondary" data-field="reviewed_pct">Reviewed %</button>
+
+			<button class="secondary" data-field="touchless_reduction_pct">TL save %</button>
+			<button class="secondary" data-field="reviewed_reduction_pct">RV save %</button>
+			<button class="secondary" data-field="expected_accuracy_pct">Agent acc %</button>
+			<button class="secondary" data-field="min_accuracy_pct">Min acc %</button>
+
+			<button class="danger wide" id="clear">AC</button>
+			<button class="accent wide" id="calc">= Calculate</button>
+
+			<!-- numeric keypad -->
+			<button data-digit="7">7</button>
+			<button data-digit="8">8</button>
+			<button data-digit="9">9</button>
+			<button class="secondary" id="back">⌫</button>
+
+			<button data-digit="4">4</button>
+			<button data-digit="5">5</button>
+			<button data-digit="6">6</button>
+			<button class="secondary" id="dot">.</button>
+
+			<button data-digit="1">1</button>
+			<button data-digit="2">2</button>
+			<button data-digit="3">3</button>
+			<button class="secondary" id="toggleGate">Gate</button>
+
+			<button class="wide" data-digit="0">0</button>
+			<button class="secondary wide" id="setDefaults">Defaults</button>
+		</div>
+
+		<div class="mini">
+			<div class="row">
+				<span class="muted">Notes:</span>
+				<span class="kbd" id="noteLine">Conservative assumptions. Capacity recovered ≠ headcount reduction.</span>
+			</div>
+		</div>
+	</div>
+
+	<script>
+		// --- Defaults (conservative, editable) ---
+		const DEFAULTS = {
+			workflow: "AP",
+			// Inputs
+			transactions_per_month: 3000,
+			minutes_per_txn: 6.0,
+			exception_rate_pct: 25.0,
+			minutes_per_exception: 18.0,
+			review_hours_per_month: 30.0,
+			hourly_cost: 65.0,
+
+			// Automation coverage (must sum to 100)
+			touchless_pct: 60.0,
+			reviewed_pct: 30.0,
+			manual_pct: 10.0,
+
+			// Time reduction assumptions
+			touchless_reduction_pct: 95.0,
+			reviewed_reduction_pct: 60.0,
+			manual_reduction_pct: 0.0,
+
+			// Accuracy gate + ramp
+			expected_accuracy_pct: 97.0,
+			min_accuracy_pct: 97.0,
+			ramp_m1_pct: 25.0,
+			ramp_m2_pct: 60.0,
+			ramp_m3_pct: 100.0,
+
+			// Constants
+			hours_per_fte_month: 160
+		};
+
+		// --- State ---
+		let state = structuredClone(DEFAULTS);
+		let accuracyGateOn = true;
+
+		const fieldLabels = {
+			transactions_per_month: "Transactions / month",
+			minutes_per_txn: "Minutes per transaction (happy path)",
+			exception_rate_pct: "Exception rate (%)",
+			minutes_per_exception: "Minutes per exception",
+			review_hours_per_month: "Review hours / month",
+			hourly_cost: "Fully loaded $/hour",
+			touchless_pct: "Touchless (%)",
+			reviewed_pct: "Reviewed (%)",
+			manual_pct: "Manual (%)",
+			touchless_reduction_pct: "Touchless time saved (%)",
+			reviewed_reduction_pct: "Reviewed time saved (%)",
+			expected_accuracy_pct: "Expected agent accuracy (%)",
+			min_accuracy_pct: "Minimum acceptable accuracy (%)"
+		};
+
+		let activeField = "transactions_per_month";
+		let entryBuffer = String(state[activeField]);
+
+		// --- DOM ---
+		const workflowEl = document.getElementById("workflow");
+		const activeFieldLabelEl = document.getElementById("activeFieldLabel");
+		const activeFieldValueEl = document.getElementById("activeFieldValue");
+		const resultsEl = document.getElementById("results");
+		const gateStatusEl = document.getElementById("gateStatus");
+		const noteLineEl = document.getElementById("noteLine");
+
+		function setActiveField(field) {
+			activeField = field;
+			entryBuffer = String(state[field]);
+			activeFieldLabelEl.textContent = "Active input: " + (fieldLabels[field] || field);
+			activeFieldValueEl.textContent = entryBuffer;
+		}
+
+		function commitEntry() {
+			const val = Number(entryBuffer);
+			if (!Number.isFinite(val)) return;
+			state[activeField] = val;
+		}
+
+		function fmtNum(n, decimals = 0) {
+			return new Intl.NumberFormat(undefined, { maximumFractionDigits: decimals, minimumFractionDigits: decimals }).format(n);
+		}
+		function fmtMoney(n) {
+			return new Intl.NumberFormat(undefined, { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(n);
+		}
+
+		function normalizeCoverage() {
+			// Keep manual_pct derived to force sum=100 (more robust UX)
+			const tl = Number(state.touchless_pct) || 0;
+			const rv = Number(state.reviewed_pct) || 0;
+			let manual = 100 - tl - rv;
+			if (manual < 0) manual = 0;
+			state.manual_pct = manual;
+		}
+
+		function validate() {
+			const errs = [];
+			const pctFields = [
+				"exception_rate_pct",
+				"touchless_pct",
+				"reviewed_pct",
+				"manual_pct",
+				"touchless_reduction_pct",
+				"reviewed_reduction_pct",
+				"expected_accuracy_pct",
+				"min_accuracy_pct",
+				"ramp_m1_pct",
+				"ramp_m2_pct",
+				"ramp_m3_pct"
+			];
+			pctFields.forEach(f => {
+				const v = Number(state[f]);
+				if (Number.isFinite(v) && (v < 0 || v > 100)) errs.push(`${f} must be 0–100`);
+			});
+			if (state.transactions_per_month < 0) errs.push("transactions_per_month must be ≥ 0");
+			if (state.minutes_per_txn < 0) errs.push("minutes_per_txn must be ≥ 0");
+			if (state.minutes_per_exception < 0) errs.push("minutes_per_exception must be ≥ 0");
+			if (state.review_hours_per_month < 0) errs.push("review_hours_per_month must be ≥ 0");
+			if (state.hourly_cost < 0) errs.push("hourly_cost must be ≥ 0");
+
+			// Coverage should not exceed 100 between tl + rv (manual derived)
+			if (state.touchless_pct + state.reviewed_pct > 100) errs.push("Touchless% + Reviewed% must be ≤ 100");
+			return errs;
+		}
+
+		function calculate() {
+			normalizeCoverage();
+			const errs = validate();
+			if (errs.length) {
+				resultsEl.innerHTML = errs.map(e => `<div>⚠️ ${e}</div>`).join("");
+				noteLineEl.textContent = "Fix inputs and recalculate.";
+				return;
+			}
+
+			// Baseline hours:
+			// baseline = (txn * mins_happy + txn * exc_rate * mins_exc) / 60 + review_hours
+			const txn = state.transactions_per_month;
+			const minsHappy = state.minutes_per_txn;
+			const excRate = state.exception_rate_pct / 100;
+			const minsExc = state.minutes_per_exception;
+			const reviewHrs = state.review_hours_per_month;
+
+			const baselineHours = ((txn * minsHappy) + (txn * excRate * minsExc)) / 60 + reviewHrs;
+
+			// Weighted time saved across coverage buckets:
+			const tl = state.touchless_pct / 100;
+			const rv = state.reviewed_pct / 100;
+			const man = state.manual_pct / 100;
+
+			const tlSave = state.touchless_reduction_pct / 100;
+			const rvSave = state.reviewed_reduction_pct / 100;
+			const manSave = state.manual_reduction_pct / 100;
+
+			// Savings only apply to the "processable" portion of baseline work.
+			// Conservative: assume review_hours are part of the same baseline pool and proportionally reducible.
+			const weightedSave = tl * tlSave + rv * rvSave + man * manSave;
+			const steadyRecoveredHours = baselineHours * weightedSave;
+			const steadyPostHours = baselineHours - steadyRecoveredHours;
+
+			// Accuracy gate
+			const gateApplies = accuracyGateOn && state.expected_accuracy_pct < state.min_accuracy_pct;
+			const recoveredHoursGated = gateApplies ? 0 : steadyRecoveredHours;
+
+			// Ramp
+			const m1 = recoveredHoursGated * (state.ramp_m1_pct / 100);
+			const m2 = recoveredHoursGated * (state.ramp_m2_pct / 100);
+			const m3 = recoveredHoursGated * (state.ramp_m3_pct / 100);
+
+			// Outputs
+			const fte = recoveredHoursGated / state.hours_per_fte_month;
+			const annual = recoveredHoursGated * state.hourly_cost * 12;
+
+			gateStatusEl.textContent = accuracyGateOn ? "ON" : "OFF";
+			noteLineEl.textContent = gateApplies
+				? `Accuracy gate ON: expected ${state.expected_accuracy_pct}% < min ${state.min_accuracy_pct}%, savings shown as $0.`
+				: "Capacity recovered ≠ headcount reduction. Assumptions are conservative.";
+
+			resultsEl.innerHTML = `
+				<div>Hours recovered (steady): <b>${fmtNum(recoveredHoursGated, 0)}</b> / mo</div>
+				<div>FTE capacity: <b>${fmtNum(fte, 2)}</b></div>
+				<div>Annual cost equivalent: <b>${fmtMoney(annual)}</b></div>
+				<div>Automation rate: <b>${fmtNum(state.touchless_pct + state.reviewed_pct, 0)}%</b> (manual ${fmtNum(state.manual_pct, 0)}%)</div>
+				<div>Ramp (M1/M2/M3+): <b>${fmtNum(m1, 0)}</b> / <b>${fmtNum(m2, 0)}</b> / <b>${fmtNum(m3, 0)}</b> hrs</div>
+				<div class="muted">Baseline hrs/mo: ${fmtNum(baselineHours, 0)} · Post hrs/mo: ${fmtNum(baselineHours - recoveredHoursGated, 0)}</div>
+			`;
+		}
+
+		// --- Wiring ---
+		workflowEl.value = state.workflow;
+		workflowEl.addEventListener("change", () => {
+			state.workflow = workflowEl.value;
+		});
+
+		document.querySelectorAll("button[data-field]").forEach(btn => {
+			btn.addEventListener("click", () => {
+				commitEntry();
+				setActiveField(btn.dataset.field);
+			});
+		});
+
+		document.querySelectorAll("button[data-digit]").forEach(btn => {
+			btn.addEventListener("click", () => {
+				const d = btn.dataset.digit;
+				// Replace if buffer is same as current state value and user starts typing
+				if (entryBuffer === String(state[activeField])) entryBuffer = "";
+				entryBuffer += d;
+				activeFieldValueEl.textContent = entryBuffer;
+			});
+		});
+
+		document.getElementById("dot").addEventListener("click", () => {
+			if (!entryBuffer.includes(".")) {
+				if (entryBuffer === String(state[activeField])) entryBuffer = "";
+				entryBuffer = entryBuffer.length ? `${entryBuffer}.` : "0.";
+				activeFieldValueEl.textContent = entryBuffer;
+			}
+		});
+
+		document.getElementById("back").addEventListener("click", () => {
+			entryBuffer = entryBuffer.slice(0, -1);
+			if (entryBuffer === "" || entryBuffer === "-") entryBuffer = "0";
+			activeFieldValueEl.textContent = entryBuffer;
+		});
+
+		document.getElementById("clear").addEventListener("click", () => {
+			state = structuredClone(DEFAULTS);
+			accuracyGateOn = true;
+			workflowEl.value = state.workflow;
+			setActiveField("transactions_per_month");
+			resultsEl.innerHTML = `
+				<div>Hours recovered (steady): —</div>
+				<div>FTE capacity: —</div>
+				<div>Annual cost equivalent: —</div>
+				<div>Ramp (M1/M2/M3+): —</div>
+			`;
+			noteLineEl.textContent = "Conservative assumptions. Capacity recovered ≠ headcount reduction.";
+			gateStatusEl.textContent = "ON";
+		});
+
+		document.getElementById("setDefaults").addEventListener("click", () => {
+			state = structuredClone(DEFAULTS);
+			workflowEl.value = state.workflow;
+			setActiveField(activeField);
+			calculate();
+		});
+
+		document.getElementById("toggleGate").addEventListener("click", () => {
+			accuracyGateOn = !accuracyGateOn;
+			gateStatusEl.textContent = accuracyGateOn ? "ON" : "OFF";
+			calculate();
+		});
+
+		document.getElementById("calc").addEventListener("click", () => {
+			commitEntry();
+			calculate();
+		});
+
+		// init
+		setActiveField(activeField);
+		calculate();
+	</script>
+</body>
+</html>
