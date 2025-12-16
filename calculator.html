@@ -46,6 +46,58 @@
 		.page-title span {
 			color: var(--primary);
 		}
+		.layout {
+			display: flex;
+			flex-wrap: wrap;
+			gap: 16px;
+			align-items: flex-start;
+			justify-content: center;
+			width: 100%;
+		}
+		.guide {
+			width: min(330px, 90vw);
+			background: var(--card);
+			border: 1px solid var(--border);
+			box-shadow: 0 18px 50px rgba(16, 22, 38, 0.14);
+			border-radius: 18px;
+			padding: 16px;
+			text-align: left;
+		}
+		.guide-block {
+			background: #f9faff;
+			border: 1px solid rgba(33, 43, 196, 0.1);
+			border-radius: 14px;
+			padding: 12px 14px;
+			box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.75);
+			margin-top: 10px;
+		}
+		.guide-subtitle {
+			font-weight: 600;
+			margin: 0 0 14px;
+			font-size: 18px;
+			color: var(--muted);
+		}
+		.guide-subtitle .accent {
+			color: var(--primary);
+			font-size: inherit;
+			font-weight: inherit;
+		}
+		.key-list {
+			list-style: none;
+			padding: 0;
+			margin: 0;
+			display: grid;
+			gap: 8px;
+			font-size: 13px;
+			color: var(--text);
+			text-align: left;
+		}
+		.key-list li {
+			line-height: 1.35;
+		}
+		.key-label {
+			font-weight: 700;
+		}
 		.calc {
 			width: min(520px, 94vw);
 			border-radius: 18px;
@@ -206,76 +258,109 @@
 </head>
 <body>
 	<h1 class="page-title">AI for Finance Teams <span>ROI Calculator</span></h1>
-	<div class="calc" role="application" aria-label="ROI Calculator">
-		<div class="topbar">
-			<div class="pill">
-				Workflow
-				<select id="workflow">
-					<option value="AP">Accounts Payable (AP)</option>
-					<option value="AR">Accounts Receivable (AR)</option>
-					<option value="RECON">Reconciliation</option>
-				</select>
+	<div class="layout">
+		<aside class="guide" aria-label="Guide and Key">
+			<div class="guide-block">
+				<div class="guide-subtitle">Inputs <span class="accent">Explained</span></div>
+				<ul class="key-list">
+					<li><span class="key-label">Transactions per Month:</span> Total monthly transaction volume you expect the agent to touch.</li>
+					<li><span class="key-label">Minutes per Transaction:</span> Average handling time on a clean transaction (no exception).</li>
+					<li><span class="key-label">Exception Rate:</span> Percent of transactions that require exception handling.</li>
+					<li><span class="key-label">Minutes per Exception:</span> Average handling time for an exception case.</li>
+					<li><span class="key-label">Review Hours per Month:</span> Time leaders spend reviewing or approving work monthly.</li>
+					<li><span class="key-label">Hourly Cost:</span> Fully loaded hourly cost for the people doing this work.</li>
+					<li><span class="key-label">Touchless % / Reviewed %:</span> Share of work you expect the agent to automate; these should total ≤ 100%, with Manual filling the rest.</li>
+					<li><span class="key-label">Touchless / Reviewed Time Saved %:</span> Estimated time reduction on the portions covered by the agent.</li>
+					<li><span class="key-label">Expected vs Minimum Accuracy %:</span> Savings are shown only when Expected Accuracy meets or exceeds the Minimum threshold.</li>
+					<li><span class="key-label">Ramp (Month 1 / 2 / 3+):</span> How quickly you assume recovered hours materialize over the first three months.</li>
+				</ul>
 			</div>
-		</div>
-
-		<div class="display" aria-live="polite">
-			<div class="sub kbd" id="results">
-				<div>Hours Recovered (Steady): —</div>
-				<div>Full-Time Equivalent Capacity: —</div>
-				<div>Annual Cost Equivalent: —</div>
-				<div>Ramp (Month 1 / Month 2 / Month 3+): —</div>
+			<div class="guide-block">
+				<div class="guide-subtitle">Outputs <span class="accent">Explained</span></div>
+				<ul class="key-list">
+					<li><span class="key-label">Hours Recovered (Steady):</span> Monthly hours saved after coverage, time-saved %, and the accuracy check.</li>
+					<li><span class="key-label">Full-Time Equivalent Capacity:</span> Recovered hours divided by 160 hours per FTE per month.</li>
+					<li><span class="key-label">Annual Cost Equivalent:</span> Recovered hours × hourly cost × 12 months.</li>
+					<li><span class="key-label">Automation Rate:</span> Total of Touchless % + Reviewed %; Manual is the remainder.</li>
+					<li><span class="key-label">Ramp by Month:</span> Month 1, Month 2, and Month 3+ savings based on your ramp assumptions.</li>
+					<li><span class="key-label">Baseline vs Post Hours:</span> Shows starting hours per month and hours after automation is applied.</li>
+				</ul>
 			</div>
-		</div>
+		</aside>
+		<div class="calc" role="application" aria-label="ROI Calculator">
+			<div class="topbar">
+				<div class="pill">
+					Workflow
+					<select id="workflow">
+						<option value="AP">Accounts Payable (AP)</option>
+						<option value="AR">Accounts Receivable (AR)</option>
+						<option value="RECON">Reconciliation</option>
+					</select>
+				</div>
+				<div class="pill" style="visibility: hidden;">
+					<span class="muted">Spacer</span>
+				</div>
+			</div>
 
-		<div class="input-window" aria-live="polite">
-			<div class="label" id="activeFieldLabel">Active Input: Transactions per Month</div>
-			<div class="value kbd" id="activeFieldValue">3000</div>
-		</div>
+			<div class="display" aria-live="polite">
+				<div class="sub kbd" id="results">
+					<div>Hours Recovered (Steady): —</div>
+					<div>Full-Time Equivalent Capacity: —</div>
+					<div>Annual Cost Equivalent: —</div>
+					<div>Ramp (Month 1 / Month 2 / Month 3+): —</div>
+				</div>
+			</div>
 
-		<!-- calculator-like buttons: choose which input you're editing -->
-		<div class="grid">
-			<button class="secondary" data-field="transactions_per_month">Txn/Month</button>
-			<button class="secondary" data-field="minutes_per_txn">Min/Txn</button>
-			<button class="secondary" data-field="exception_rate_pct">Exc %</button>
-			<button class="secondary" data-field="minutes_per_exception">Min/Exc</button>
+			<div class="input-window" aria-live="polite">
+				<div class="label" id="activeFieldLabel">Active Input: Transactions per Month</div>
+				<div class="value kbd" id="activeFieldValue">3000</div>
+			</div>
 
-			<button class="secondary" data-field="review_hours_per_month">Review Hrs</button>
-			<button class="secondary" data-field="hourly_cost">$/Hr</button>
-			<button class="secondary" data-field="touchless_pct">Touchless %</button>
-			<button class="secondary" data-field="reviewed_pct">Reviewed %</button>
+			<!-- calculator-like buttons: choose which input you're editing -->
+			<div class="grid">
+				<button class="secondary" data-field="transactions_per_month">Txn/Month</button>
+				<button class="secondary" data-field="minutes_per_txn">Min/Txn</button>
+				<button class="secondary" data-field="exception_rate_pct">Exc %</button>
+				<button class="secondary" data-field="minutes_per_exception">Min/Exc</button>
 
-			<button class="secondary" data-field="touchless_reduction_pct">TL Save %</button>
-			<button class="secondary" data-field="reviewed_reduction_pct">RV Save %</button>
-			<button class="secondary" data-field="expected_accuracy_pct">Agent Acc %</button>
-			<button class="secondary" data-field="min_accuracy_pct">Min Acc %</button>
+				<button class="secondary" data-field="review_hours_per_month">Review Hrs</button>
+				<button class="secondary" data-field="hourly_cost">$/Hr</button>
+				<button class="secondary" data-field="touchless_pct">Touchless %</button>
+				<button class="secondary" data-field="reviewed_pct">Reviewed %</button>
 
-			<button class="danger wide" id="clear">AC</button>
-			<button class="accent wide" id="calc"><span class="calc-label">= Calculate</span></button>
+				<button class="secondary" data-field="touchless_reduction_pct">TL Save %</button>
+				<button class="secondary" data-field="reviewed_reduction_pct">RV Save %</button>
+				<button class="secondary" data-field="expected_accuracy_pct">Agent Acc %</button>
+				<button class="secondary" data-field="min_accuracy_pct">Min Acc %</button>
 
-			<!-- numeric keypad -->
-			<button data-digit="7">7</button>
-			<button data-digit="8">8</button>
-			<button data-digit="9">9</button>
-			<button class="secondary" id="back">⌫</button>
+				<button class="danger wide" id="clear">AC</button>
+				<button class="accent wide" id="calc"><span class="calc-label">= Calculate</span></button>
 
-			<button data-digit="4">4</button>
-			<button data-digit="5">5</button>
-			<button data-digit="6">6</button>
-			<button class="secondary" id="dot">.</button>
+				<!-- numeric keypad -->
+				<button data-digit="7">7</button>
+				<button data-digit="8">8</button>
+				<button data-digit="9">9</button>
+				<button class="secondary" id="back">⌫</button>
 
-			<button data-digit="1">1</button>
-			<button data-digit="2">2</button>
-			<button data-digit="3">3</button>
-			<button class="secondary" disabled aria-disabled="true" aria-hidden="true" tabindex="-1" style="visibility: hidden;">&nbsp;</button>
+				<button data-digit="4">4</button>
+				<button data-digit="5">5</button>
+				<button data-digit="6">6</button>
+				<button class="secondary" id="dot">.</button>
 
-			<button class="wide" data-digit="0">0</button>
-			<button class="secondary wide" id="setDefaults">Defaults</button>
-		</div>
+				<button data-digit="1">1</button>
+				<button data-digit="2">2</button>
+				<button data-digit="3">3</button>
+				<button class="secondary" disabled aria-disabled="true" aria-hidden="true" tabindex="-1" style="visibility: hidden;">&nbsp;</button>
 
-		<div class="mini">
-			<div class="row">
-				<span class="muted">Notes:</span>
-				<span class="kbd" id="noteLine">Conservative Assumptions. Capacity Recovered ≠ Headcount Reduction.</span>
+				<button class="wide" data-digit="0">0</button>
+				<button class="secondary wide" id="setDefaults">Defaults</button>
+			</div>
+
+			<div class="mini">
+				<div class="row">
+					<span class="muted">Notes:</span>
+					<span class="kbd" id="noteLine">Conservative Assumptions. Capacity Recovered ≠ Headcount Reduction.</span>
+				</div>
 			</div>
 		</div>
 	</div>
