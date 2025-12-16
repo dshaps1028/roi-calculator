@@ -55,7 +55,7 @@
 			width: 100%;
 		}
 		.guide {
-			width: min(330px, 90vw);
+			width: min(300px, 90vw);
 			background: var(--card);
 			border: 1px solid var(--border);
 			box-shadow: 0 18px 50px rgba(16, 22, 38, 0.14);
@@ -242,6 +242,68 @@
 			border-radius: 14px;
 			padding: 10px;
 		}
+		.callout {
+			background: #f0f2ff;
+			border: 1px solid rgba(33, 43, 196, 0.16);
+			border-radius: 14px;
+			padding: 12px 14px;
+			color: var(--text);
+			font-size: 12px;
+			line-height: 1.4;
+			box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8);
+		}
+		.callout strong {
+			color: var(--primary);
+		}
+		.tooltip {
+			display: none;
+			position: absolute;
+			top: 50%;
+			left: calc(100% + 14px);
+			transform: translateY(-50%);
+			min-width: 240px;
+			max-width: 280px;
+			z-index: 10;
+			pointer-events: none;
+			filter: drop-shadow(0 10px 24px rgba(16, 22, 38, 0.12));
+		}
+		.tooltip::before {
+			content: "";
+			position: absolute;
+			left: -8px;
+			top: 50%;
+			transform: translateY(-50%);
+			width: 0;
+			height: 0;
+			border-top: 8px solid transparent;
+			border-bottom: 8px solid transparent;
+			border-right: 8px solid rgba(33, 43, 196, 0.16);
+		}
+		.help-icon {
+			display: inline-flex;
+			align-items: center;
+			justify-content: center;
+			width: 18px;
+			height: 18px;
+			border-radius: 50%;
+			background: rgba(33, 43, 196, 0.12);
+			color: var(--primary);
+			font-weight: 700;
+			font-size: 12px;
+			margin-left: 6px;
+		}
+		#setDefaults {
+			display: inline-flex;
+			align-items: center;
+			justify-content: center;
+			gap: 6px;
+			position: relative;
+			overflow: visible;
+		}
+		.help-icon:hover ~ .tooltip,
+		.help-icon:focus-visible ~ .tooltip {
+			display: block;
+		}
 		.row {
 			display: flex;
 			justify-content: space-between;
@@ -334,7 +396,13 @@
 				<button class="secondary" data-field="min_accuracy_pct">Min Acc %</button>
 
 				<button class="danger wide" id="clear">AC</button>
-				<button class="accent wide" id="calc"><span class="calc-label">= Calculate</span></button>
+				<button class="secondary wide" id="setDefaults">
+					<span class="btn-label">Set Default Value</span>
+					<span class="help-icon" aria-hidden="true">?</span>
+					<span class="callout tooltip" role="tooltip">
+						<strong>Set Default Value</strong> resets only the active input to a conservative baseline based on common finance workflows. Adjust after setting a default to reflect your own volume, effort, and accuracy targets.
+					</span>
+				</button>
 
 				<!-- numeric keypad -->
 				<button data-digit="7">7</button>
@@ -353,7 +421,7 @@
 				<button class="secondary" disabled aria-disabled="true" aria-hidden="true" tabindex="-1" style="visibility: hidden;">&nbsp;</button>
 
 				<button class="wide" data-digit="0">0</button>
-			<button class="secondary wide" id="setDefaults">Set Default Value</button>
+				<button class="accent wide" id="calc"><span class="calc-label">= Calculate</span></button>
 			</div>
 
 			<div class="mini">
@@ -362,6 +430,7 @@
 					<span class="kbd" id="noteLine">Conservative Assumptions. Capacity Recovered ≠ Headcount Reduction.</span>
 				</div>
 			</div>
+
 		</div>
 	</div>
 
