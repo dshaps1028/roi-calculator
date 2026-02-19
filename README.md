@@ -1,38 +1,70 @@
-# AI for Finance Teams ROI Calculator
+# ROI Calculator + Agent Orchestration
 
-An in-browser calculator to estimate time and cost savings from automating finance workflows (AP, AR, Reconciliation).
+This repo contains:
+- `new_calculator.html`: the current ROI calculator (single-file HTML/CSS/JS) with a HubSpot form in a modal.
+- `calculator.html`: the legacy calculator.
+- `agent.py`: an Agents SDK workflow that uses the Codex MCP server to generate/update `new_calculator.html` and a design QA agent to review it.
+- `prompt.md`: the prompt used by the dev agent for generation.
 
-## How to Use
-- Open `calculator.html` in a browser. The calculator is centered with a guide panel on the left.
-- Pick a workflow (Accounts Payable, Accounts Receivable, Reconciliation).
-- Select the input you want to edit, then use the keypad to enter values. “Set Default Value” resets only the active field.
-- Click `= Calculate` to refresh the results. “AC” resets all fields to defaults.
+## Quick Start (Calculator)
+Open `new_calculator.html` in a browser. It runs entirely client-side.
 
-## Inputs
-- Transactions per Month: Monthly transaction volume.
-- Minutes per Transaction: Average handling time with no exception.
-- Exception Rate and Minutes per Exception: Portion and effort for exception cases.
-- Review Hours per Month: Leadership review/approval time.
-- Hourly Cost: Fully loaded hourly rate for the work.
-- Coverage: Touchless % and Reviewed % (must total ≤ 100%; Manual is derived).
-- Time Saved %: Expected time reduction for Touchless and Reviewed work.
-- Accuracy: Expected vs Minimum accuracy; savings are zeroed if Expected < Minimum.
-- Ramp: Month 1 / Month 2 / Month 3+ ramp percentages for recovered hours.
+### Inputs (Current Model)
+- Industry (dropdown)
+- Role (dropdown)
+- Number of days to close the books
+- Hours spent on manual work
+- Yearly in-house cost
+- Yearly outsourced cost
+- Number of finance & accounting FTEs
+- No of Accounting Employees
 
-## Outputs
-- Hours Recovered (Steady): Monthly hours saved after applying coverage, time saved %, accuracy gate, and ramp.
-- Full-Time Equivalent Capacity: Recovered hours ÷ 160 hours per FTE-month.
-- Annual Cost Equivalent: Recovered hours × hourly cost × 12.
-- Automation Rate: Touchless + Reviewed coverage; Manual is the remainder.
-- Ramp by Month: Hours recovered in Months 1, 2, and 3+ based on ramp.
-- Baseline vs Post Hours: Starting hours per month and hours after automation.
+### Outputs (Current Labels)
+- Days of Close Eliminated
+- Manual Reconciliation Hours Saved
+- Annual Labor Cost Savings
+- Outsourced Cost Savings
+- Finance Capacity Unlocked
 
-## Calculation Logic & Assumptions
-- Baseline Hours = ((Transactions × Minutes per Transaction) + (Transactions × Exception Rate × Minutes per Exception)) ÷ 60 + Review Hours.
-- Coverage: Touchless % + Reviewed % ≤ 100%; Manual % is derived as the remainder.
-- Weighted Time Saved = (Touchless % × Touchless Time Saved %) + (Reviewed % × Reviewed Time Saved %); Manual is assumed 0% time saved by default.
-- Recovered Hours = Baseline Hours × Weighted Time Saved.
-- Accuracy Gate: If Expected Accuracy < Minimum Accuracy, recovered hours (and dollars) are set to 0.
-- Ramp: Month 1/2/3+ recovered hours are the steady recovered hours multiplied by the ramp percentages.
-- FTE Capacity = Recovered Hours ÷ 160 hours per FTE-month; Annual Cost = Recovered Hours × Hourly Cost × 12.
-- Assumptions are conservative; recovered capacity ≠ guaranteed headcount reduction.
+### Calculation Notes (Current State)
+- Days of Close Eliminated = `days_to_close * 0.65`
+- Other output formulas are placeholders and should be defined as the model is finalized.
+
+## HubSpot Form
+The form is embedded in a modal that opens when the user clicks **Get my ROI report**.  
+The form container lives in `new_calculator.html` near the bottom and is created by `createHsForm()`:
+- Update `region`, `portalId`, and `formId`.
+- Hidden field internal names are configured in the `HS_FIELDS` map.
+
+## Agent Workflow (agent.py)
+`agent.py` uses the OpenAI Agents SDK and the Codex MCP server:
+- **Dev Agent**: generates/updates `new_calculator.html` via Codex.
+- **Design Agent**: reviews `new_calculator.html` against the prompt and returns `STATUS: OK` or `STATUS: NEEDS_CHANGES`.
+- The loop repeats until requirements are met or `DESIGN_REVIEW_MAX_PASSES` is reached.
+
+### Run the Agent
+1) Create `.env` with your OpenAI API key:
+```
+OPENAI_API_KEY=REPLACE_ME
+```
+2) Install dependencies:
+```
+python -m venv .venv
+source .venv/bin/activate
+python -m pip install --upgrade pip
+python -m pip install openai-agents python-dotenv
+```
+3) Run:
+```
+python agent.py --prompt-path prompt.md
+```
+
+### MCP Server Note
+`agent.py` launches the Codex MCP server using:
+```
+npx -y @openai/codex mcp-server
+```
+
+## Environment + Git Hygiene
+Add `.env` to `.gitignore` to avoid committing secrets.  
+If a push is blocked, remove the secret from commits and rotate your key.
