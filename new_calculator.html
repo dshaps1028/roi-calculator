@@ -1,0 +1,893 @@
+<!--
+SETUP NOTES:
+- HubSpot form: update `region`, `portalId`, and `formId` in the createHsForm() call.
+- Hidden fields: if your internal names differ, update the HS_FIELDS map in the script.
+- Any additional hidden fields can be injected in onFormReady / onFormSubmit if needed.
+-->
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Kinter — ROI Calculator</title>
+  <link rel="preconnect" href="https://fonts.cdnfonts.com" />
+  <link rel="stylesheet" href="https://fonts.cdnfonts.com/css/instrument-serif" />
+  <link rel="stylesheet" href="https://fonts.cdnfonts.com/css/instrument-sans" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      color-scheme: dark;
+      --font-serif: "Instrument Serif", serif;
+      --font-sans: "Instrument Sans", Arial, sans-serif;
+      --font-grotesk: "Space Grotesk", Arial, sans-serif;
+      --bg: #000;
+      --text: #fff;
+      --muted: #fff;
+      --surface: #16171b;
+      --border: #343538;
+      --accent: #cff01a;
+      --accent-2: #adff8b;
+      --radius: 16px;
+      --shadow: 0px 4px 32px rgba(54, 242, 54, 0.10);
+      --shadow-soft: 0 10px 24px rgba(0, 0, 0, 0.35);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: var(--font-sans);
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+    }
+
+    .page {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 32px 20px 80px;
+    }
+
+    .intro {
+      margin-bottom: 28px;
+    }
+
+    .eyebrow {
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text);
+      opacity: 0.75;
+      margin: 0 0 10px;
+    }
+
+    .intro h1 {
+      margin: 0 0 12px;
+      font-size: clamp(30px, 4vw, 44px);
+      line-height: 1.1;
+      letter-spacing: 0em;
+      font-weight: 400;
+      font-family: var(--font-serif);
+    }
+
+    h2 {
+      line-height: 1.1;
+      letter-spacing: 0em;
+      font-weight: 400;
+      font-family: var(--font-serif);
+      text-align: center;
+    }
+
+    .intro p {
+      margin: 0;
+      color: var(--text);
+      opacity: 0.8;
+      font-size: 16px;
+      max-width: 780px;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 24px;
+      align-items: start;
+    }
+
+    @media (min-width: 960px) {
+      .layout {
+        grid-template-columns: 1.05fr 0.95fr;
+      }
+
+      .results-column {
+        position: sticky;
+        top: 24px;
+      }
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 1px;
+      box-shadow: var(--shadow);
+      padding: 24px;
+    }
+
+    .section-title {
+      margin: 0 0 16px;
+      font-size: 34px;
+      font-weight: 600;
+      font-family: var(--font-serif);
+    }
+
+    .section-copy {
+      margin: 0 0 20px;
+      color: var(--text);
+      opacity: 0.8;
+      font-size: 14px;
+    }
+
+    fieldset {
+      border: none;
+      padding: 0;
+      margin: 0 0 20px;
+    }
+
+    fieldset:last-of-type {
+      margin-bottom: 0;
+    }
+
+    legend {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 12px;
+      font-family: var(--font-sans);
+    }
+
+    .field-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 16px;
+    }
+
+    @media (min-width: 720px) {
+      .field-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    label {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--accent);
+      font-family: var(--font-sans);
+    }
+
+    input[type="number"],
+    select {
+      padding: 12px 14px;
+      border-radius: 1px;
+      border: 1px solid var(--border);
+      font-size: 15px;
+      font-family: var(--font-sans);
+      background: var(--surface);
+      color: var(--text);
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    input[type="number"]:focus,
+    select:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(207, 240, 26, 0.25);
+    }
+
+    .hint {
+      font-size: 12px;
+      color: var(--text);
+      opacity: 0.7;
+    }
+
+    .error {
+      font-size: 12px;
+      color: var(--text);
+      opacity: 0.85;
+      min-height: 16px;
+    }
+
+    .results-card {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .main-stat {
+      padding: 20px;
+      border-radius: 1px;
+      border: none;
+      background: transparent;
+      box-shadow: none;
+    }
+
+    .main-stat::after {
+      content: "";
+      display: block;
+      height: 3px;
+      background: var(--border);
+      margin-top: 24px;
+    }
+
+    .main-stat .label {
+      margin: 0 0 6px;
+      font-size: 12px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--text);
+      opacity: 0.75;
+      font-weight: 600;
+      font-family: var(--font-sans);
+    }
+
+    .main-stat .value {
+      margin: 0 0 6px;
+      font-size: clamp(30px, 4vw, 40px);
+      font-weight: 700;
+      color: var(--text);
+      font-family: var(--font-serif);
+    }
+
+    .main-stat .sub {
+      margin: 0;
+      color: var(--text);
+      opacity: 0.8;
+      font-size: 14px;
+    }
+
+    .secondary {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .secondary-stat {
+      padding: 12px 14px;
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      background: var(--surface);
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .secondary-stat .label {
+      font-size: 12px;
+      color: var(--text);
+      opacity: 0.75;
+      font-family: var(--font-sans);
+    }
+
+    .secondary-stat .value {
+      font-size: 16px;
+      font-weight: 600;
+      font-family: var(--font-serif);
+    }
+
+    .metrics {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .metric-tile {
+      border-radius: var(--radius);
+      padding: 10px 12px;
+      background: transparent;
+      box-shadow: none;
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .metric-tile .label {
+      font-size: 14px;
+      color: var(--text);
+      opacity: 0.75;
+      font-family: var(--font-sans);
+    }
+
+    .metric-tile .value {
+      font-size: 18px;
+      font-weight: 600;
+      font-family: var(--font-serif);
+      text-align: right;
+    }
+
+    .warning {
+      border-left: 3px solid var(--accent);
+      padding: 10px 12px;
+      background: rgba(207, 240, 26, 0.12);
+      color: var(--text);
+      border-radius: var(--radius);
+      font-size: 13px;
+      display: none;
+    }
+
+    .cta {
+      width: 100%;
+      padding: 16px 18px;
+      font-size: 16px;
+      font-weight: 700;
+      border-radius: 1px;
+      border: none;
+      background: linear-gradient(270deg, rgb(208, 255, 0) 0%, rgb(212, 255, 31) 106%, rgb(255, 255, 255) 114.77147016011644%, var(--token-df95533b-9397-4d55-a4ec-0858bad08d10, rgb(217, 255, 47)) 243.00000000000003%);
+      color: #000;
+      font-family: var(--font-grotesk);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      cursor: pointer;
+      transition: transform 0.05s ease, box-shadow 0.2s ease, background 0.2s ease;
+      box-shadow: var(--shadow);
+    }
+
+    .cta:hover {
+      background: linear-gradient(270deg, rgb(208, 255, 0) 0%, rgb(212, 255, 31) 106%, rgb(255, 255, 255) 114.77147016011644%, var(--token-df95533b-9397-4d55-a4ec-0858bad08d10, rgb(217, 255, 47)) 243.00000000000003%);
+      box-shadow: 0 12px 30px rgba(173, 255, 139, 0.22);
+    }
+
+    .cta:active {
+      transform: translateY(1px);
+    }
+
+    .cta:focus {
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(207, 240, 26, 0.3);
+    }
+
+    .cta-note {
+      margin: 0;
+      font-size: 12px;
+      color: var(--text);
+      opacity: 0.75;
+      text-align: center;
+    }
+
+    .form-section {
+      margin-top: 36px;
+      scroll-margin-top: 24px;
+    }
+
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.7);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      z-index: 1000;
+    }
+
+    .modal-overlay.is-open {
+      display: flex;
+    }
+
+    .modal {
+      width: min(720px, 100%);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-soft);
+      padding: 24px;
+      position: relative;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+
+    .modal-close {
+      position: absolute;
+      top: 14px;
+      right: 14px;
+      border: none;
+      background: transparent;
+      color: var(--text);
+      font-size: 22px;
+      cursor: pointer;
+    }
+
+    .form-section h3,
+    .modal h3 {
+      margin: 0 0 8px;
+      font-size: 20px;
+      font-family: var(--font-serif);
+    }
+
+    .form-section p,
+    .modal p {
+      margin: 0 0 20px;
+      color: var(--text);
+      opacity: 0.8;
+      font-size: 14px;
+    }
+
+    h1,
+    h2,
+    h3,
+    .results-summary-headline {
+      font-family: var(--font-serif);
+    }
+
+    @media (max-width: 640px) {
+      .secondary {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <header class="intro">
+      <h1>Kinter Close Agent ROI Calculator.</h1>
+      <p>Adjust the inputs below to see how automation could reduce manual effort, lower labor costs, and deliver measurable financial impact across your monthly operations.</p>
+    </header>
+
+    <main class="layout">
+      <section class="card" aria-labelledby="settings-title">
+        <h2 class="section-title" id="settings-title">Your Settings</h2><br />
+        <p class="section-copy">Provide a few details about your current process. Results update instantly as you make changes.</p>
+        <form id="roi-inputs" novalidate>
+          <fieldset>
+            <div class="field-grid">
+              <div class="field">
+                <label for="industry">Your Industry</label>
+                <select id="industry" name="industry" aria-describedby="industry_hint industry_error" required>
+                  <option value="">Select an industry</option>
+                  <option value="Technology">Technology</option>
+                  <option value="Financial Services">Financial Services</option>
+                  <option value="Healthcare">Healthcare</option>
+                  <option value="Manufacturing">Manufacturing</option>
+                  <option value="Professional Services">Professional Services</option>
+                  <option value="Retail">Retail</option>
+                  <option value="Other">Other</option>
+                </select>
+                <span class="error" id="industry_error" aria-live="polite"></span>
+              </div>
+              <div class="field">
+                <label for="role">Your Role</label>
+                <select id="role" name="role" aria-describedby="role_hint role_error" required>
+                  <option value="">Select a role</option>
+                  <option value="Controller">Controller</option>
+                  <option value="VP Finance">VP Finance</option>
+                  <option value="CFO">CFO</option>
+                  <option value="Accounting Manager">Accounting Manager</option>
+                  <option value="FP&A Manager">FP&A Manager</option>
+                  <option value="Senior Accountant">Senior Accountant</option>
+                  <option value="Junior Accountant">Junior Accountant</option>
+                  <option value="Bookkeeper">Bookkeeper</option>
+                  <option value="AP/AR Manager">AP/AR Manager</option>
+                  <option value="Finance Operations">Finance Operations</option>
+                  <option value="Other">Other</option>
+                </select>
+                <span class="error" id="role_error" aria-live="polite"></span>
+              </div>
+              <div class="field">
+                <label for="days_to_close">Current Days to Close</label>
+                <input id="days_to_close" name="days_to_close" type="number" inputmode="numeric" min="0" step="1" value="10" aria-describedby="days_to_close_hint days_to_close_error" required />
+                <span class="hint" id="days_to_close_hint">Current close duration in days.</span>
+                <span class="error" id="days_to_close_error" aria-live="polite"></span>
+              </div>
+              <div class="field">
+                <label for="manual_work_hours">Manual Hours Spent</label>
+                <input id="manual_work_hours" name="manual_work_hours" type="number" inputmode="decimal" min="0" step="1" value="120" aria-describedby="manual_work_hours_hint manual_work_hours_error" required />
+                <span class="hint" id="manual_work_hours_hint">Hours you spend manually closing the books each cycle</span>
+                <span class="error" id="manual_work_hours_error" aria-live="polite"></span>
+              </div>
+            </div>
+          </fieldset>
+
+          <fieldset>
+            <legend>Cost and coverage</legend>
+            <div class="field-grid">
+              <div class="field">
+                <label for="yearly_inhouse_cost">Yearly in-house cost</label>
+                <input id="yearly_inhouse_cost" name="yearly_inhouse_cost" type="number" inputmode="decimal" min="0" step="100" value="650000" aria-describedby="yearly_inhouse_cost_hint yearly_inhouse_cost_error" required />
+                <span class="hint" id="yearly_inhouse_cost_hint">Annual internal finance cost.</span>
+                <span class="error" id="yearly_inhouse_cost_error" aria-live="polite"></span>
+              </div>
+              <div class="field">
+                <label for="yearly_outsourced_cost">Yearly outsourced cost</label>
+                <input id="yearly_outsourced_cost" name="yearly_outsourced_cost" type="number" inputmode="decimal" min="0" step="100" value="120000" aria-describedby="yearly_outsourced_cost_hint yearly_outsourced_cost_error" required />
+                <span class="hint" id="yearly_outsourced_cost_hint">Annual external finance cost.</span>
+                <span class="error" id="yearly_outsourced_cost_error" aria-live="polite"></span>
+              </div>
+            </div>
+          </fieldset>
+
+          <fieldset>
+            <legend>Investment</legend>
+            <div class="field-grid">
+              <div class="field">
+                <label for="finance_fte">Number of Finance &amp; Accounting FTEs</label>
+                <input id="finance_fte" name="finance_fte" type="number" inputmode="numeric" min="0" step="1" value="8" aria-describedby="finance_fte_hint finance_fte_error" required />
+                <span class="hint" id="finance_fte_hint">Those specifically involved in the close process</span>
+                <span class="error" id="finance_fte_error" aria-live="polite"></span>
+              </div>
+            </div>
+          </fieldset>
+        </form>
+      </section>
+
+      <aside class="results-column">
+        <section class="card results-card" aria-live="polite" aria-labelledby="results-title">
+          <div>
+            <h2 class="section-title" id="results-title">Results Summary</h2>
+          </div>
+          <div class="main-stat">
+            <p class="label">Estimated annual net savings</p>
+            <p class="value" id="annual_net_savings_display">$--</p>
+            <p class="sub">That equals <strong id="roi_percent_annual_display">--</strong> return on investment.</p>
+          </div>
+          <div class="metrics">
+            <div class="metric-tile">
+              <span class="label">Manual Reconciliation Hours Saved</span>
+              <span class="value" id="hours_saved_monthly_display">-- hours</span>
+            </div>
+            <div class="metric-tile">
+              <span class="label">Annual Labor Cost Savings</span>
+              <span class="value" id="labor_savings_monthly_display">$--</span>
+            </div>
+            <div class="metric-tile">
+              <span class="label">Outsourced Cost Savings</span>
+              <span class="value" id="net_savings_monthly_tile_display">$--</span>
+            </div>
+            <div class="metric-tile">
+              <span class="label">Finance Capacity Unlocked</span>
+              <span class="value" id="annual_net_savings_tile_display">$--</span>
+            </div>
+            <div class="metric-tile">
+              <span class="label">Days to Close Eliminated</span>
+              <span class="value" id="days_close_eliminated_display">-- days</span>
+            </div>
+            <div class="metric-tile">
+              <span class="label">Annual Labor Cost Savings</span>
+              <span class="value" id="payback_months_tile_display">$--</span>
+            </div>
+          </div>
+          <div class="warning" id="payback_warning" role="status" aria-live="polite"></div>
+          <button class="cta" id="scroll_to_form" type="button">Get my ROI report</button>
+          <p class="cta-note">We will send the full breakdown and recommendations.</p>
+        </section>
+      </aside>
+    </main>
+
+    <div class="modal-overlay" id="roi-modal" role="dialog" aria-modal="true" aria-labelledby="form-title">
+      <div class="modal">
+        <button class="modal-close" id="roi-modal-close" type="button" aria-label="Close">
+          &times;
+        </button>
+        <h3 id="form-title">Get the full ROI report</h3>
+        <p>Share your details and we will email a personalized ROI report based on your current inputs.</p>
+        <script charset="utf-8" type="text/javascript" src="//js.hsforms.net/forms/v2.js"></script>
+        <div id="roi-hs-form"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const HS_FIELDS = {
+      hoursSavedMonthly: "roi_hours_saved_monthly",
+      annualNetSavings: "roi_annual_net_savings",
+      roiPercent: "roi_roi_percent",
+      paybackMonths: "roi_payback_months",
+      inputsJson: "roi_inputs_json",
+    };
+
+    const state = {
+      inputs: {
+        days_to_close: 10,
+        manual_work_hours: 120,
+        yearly_inhouse_cost: 650000,
+        yearly_outsourced_cost: 120000,
+        finance_fte: 8,
+        accounting_employees: 5,
+        industry: "",
+        role: "",
+      },
+      outputs: {
+        days_close_eliminated: 0,
+        hours_saved_monthly: 0,
+        labor_savings_monthly: 0,
+        net_savings_monthly: 0,
+        annual_net_savings: 0,
+        roi_percent_annual: 0,
+        payback_months: 0,
+      },
+      valid: true,
+    };
+
+    const numberFormatter = new Intl.NumberFormat("en-US", {
+      maximumFractionDigits: 1,
+    });
+
+    const currencyFormatter = new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "USD",
+      maximumFractionDigits: 0,
+    });
+
+    const percentFormatter = new Intl.NumberFormat("en-US", {
+      style: "percent",
+      maximumFractionDigits: 0,
+    });
+
+    const fieldConfig = {
+      days_to_close: { min: 0 },
+      manual_work_hours: { min: 0 },
+      yearly_inhouse_cost: { min: 0 },
+      yearly_outsourced_cost: { min: 0 },
+      finance_fte: { min: 0 },
+      accounting_employees: { min: 0 },
+      industry: { type: "select" },
+      role: { type: "select" },
+    };
+
+    const inputs = Object.keys(state.inputs).reduce((acc, key) => {
+      acc[key] = document.getElementById(key);
+      return acc;
+    }, {});
+
+    const outputEls = {
+      days_close_eliminated: document.getElementById("days_close_eliminated_display"),
+      hours_saved_monthly: document.getElementById("hours_saved_monthly_display"),
+      labor_savings_monthly: document.getElementById("labor_savings_monthly_display"),
+      net_savings_monthly: document.getElementById("net_savings_monthly_display"),
+      net_savings_monthly_tile: document.getElementById("net_savings_monthly_tile_display"),
+      annual_net_savings: document.getElementById("annual_net_savings_display"),
+      annual_net_savings_tile: document.getElementById("annual_net_savings_tile_display"),
+      roi_percent_annual: document.getElementById("roi_percent_annual_display"),
+    };
+
+    const warningEl = document.getElementById("payback_warning");
+    const scrollButton = document.getElementById("scroll_to_form");
+    const modalOverlay = document.getElementById("roi-modal");
+    const modalClose = document.getElementById("roi-modal-close");
+
+    let formElement = null;
+    let focusOnReady = false;
+
+    function parseFieldValue(key, value) {
+      const config = fieldConfig[key] || {};
+
+      if (config.type === "select") {
+        if (value === "") {
+          return { value: null, error: "Please select an option." };
+        }
+        return { value, error: "" };
+      }
+
+      if (value === "") {
+        return { value: null, error: "This field is required." };
+      }
+
+      const numeric = Number(value);
+      if (Number.isNaN(numeric)) {
+        return { value: null, error: "Enter a valid number." };
+      }
+
+      if (numeric < fieldConfig[key].min) {
+        return { value: null, error: "Value cannot be negative." };
+      }
+
+      if (fieldConfig[key].max !== undefined && numeric > fieldConfig[key].max) {
+        return { value: null, error: "Value must be 100 or less." };
+      }
+
+      return { value: numeric, error: "" };
+    }
+
+    function updateValidation(key, error) {
+      const input = inputs[key];
+      const errorEl = document.getElementById(`${key}_error`);
+      if (error) {
+        input.setAttribute("aria-invalid", "true");
+        errorEl.textContent = error;
+      } else {
+        input.removeAttribute("aria-invalid");
+        errorEl.textContent = "";
+      }
+    }
+
+    function calculate() {
+      let valid = true;
+
+      Object.keys(inputs).forEach((key) => {
+        const { value, error } = parseFieldValue(key, inputs[key].value.trim());
+        updateValidation(key, error);
+        if (error) {
+          valid = false;
+        }
+        state.inputs[key] = value;
+      });
+
+      state.valid = valid;
+      if (!valid) {
+        renderOutputs(null);
+        return;
+      }
+
+      const daysCloseEliminated = state.inputs.days_to_close * 0.65;
+      const hoursSaved = 0;
+      const laborSavings = 0;
+      const netSavings = 0;
+      const annualNetSavings = 0;
+      const roiPercentAnnual = null;
+      const paybackMonths = null;
+
+      state.outputs = {
+        days_close_eliminated: daysCloseEliminated,
+        hours_saved_monthly: hoursSaved,
+        labor_savings_monthly: laborSavings,
+        net_savings_monthly: netSavings,
+        annual_net_savings: annualNetSavings,
+        roi_percent_annual: roiPercentAnnual,
+        payback_months: paybackMonths,
+      };
+
+      renderOutputs(state.outputs);
+    }
+
+    function formatCurrency(value) {
+      return currencyFormatter.format(value);
+    }
+
+    function formatNumber(value) {
+      return numberFormatter.format(value);
+    }
+
+    function formatPercent(value) {
+      return percentFormatter.format(value);
+    }
+
+    function renderOutputs(outputs) {
+      if (!outputs) {
+        Object.keys(outputEls).forEach((key) => {
+          outputEls[key].textContent = "--";
+        });
+        warningEl.style.display = "none";
+        updateHiddenFields();
+        return;
+      }
+
+      outputEls.hours_saved_monthly.textContent = `${formatNumber(outputs.hours_saved_monthly)} hrs`;
+      outputEls.days_close_eliminated.textContent = `${formatNumber(outputs.days_close_eliminated)} days`;
+      outputEls.labor_savings_monthly.textContent = formatCurrency(outputs.labor_savings_monthly);
+      outputEls.net_savings_monthly.textContent = formatCurrency(outputs.net_savings_monthly);
+      outputEls.net_savings_monthly_tile.textContent = formatCurrency(outputs.net_savings_monthly);
+      outputEls.annual_net_savings.textContent = formatCurrency(outputs.annual_net_savings);
+      outputEls.annual_net_savings_tile.textContent = formatCurrency(outputs.annual_net_savings);
+
+      outputEls.roi_percent_annual.textContent = "--";
+      warningEl.style.display = "none";
+
+      updateHiddenFields();
+    }
+
+    function updateHiddenFields() {
+      if (!formElement) {
+        return;
+      }
+
+      const fields = {
+        [HS_FIELDS.hoursSavedMonthly]: state.outputs.hours_saved_monthly,
+        [HS_FIELDS.annualNetSavings]: state.outputs.annual_net_savings,
+        [HS_FIELDS.roiPercent]: state.outputs.roi_percent_annual === null ? "" : state.outputs.roi_percent_annual,
+        [HS_FIELDS.paybackMonths]: state.outputs.payback_months === null ? "No payback" : state.outputs.payback_months,
+        [HS_FIELDS.inputsJson]: JSON.stringify({
+          inputs: state.inputs,
+          outputs: state.outputs,
+        }),
+      };
+
+      Object.keys(fields).forEach((name) => {
+        const input = formElement.querySelector(`input[name="${name}"]`);
+        if (input) {
+          input.value = fields[name];
+        }
+      });
+    }
+
+    function focusFormField() {
+      if (!formElement) {
+        focusOnReady = true;
+        return;
+      }
+
+      const firstInput = formElement.querySelector("input, select, textarea");
+      if (firstInput) {
+        firstInput.focus({ preventScroll: true });
+      }
+    }
+
+    function openModal() {
+      modalOverlay.classList.add("is-open");
+      document.body.style.overflow = "hidden";
+      focusFormField();
+    }
+
+    function closeModal() {
+      modalOverlay.classList.remove("is-open");
+      document.body.style.overflow = "";
+    }
+
+    scrollButton.addEventListener("click", openModal);
+    modalClose.addEventListener("click", closeModal);
+    modalOverlay.addEventListener("click", (event) => {
+      if (event.target === modalOverlay) {
+        closeModal();
+      }
+    });
+
+    window.addEventListener("keydown", (event) => {
+      if (event.key === "Escape" && modalOverlay.classList.contains("is-open")) {
+        closeModal();
+      }
+    });
+
+    Object.keys(inputs).forEach((key) => {
+      inputs[key].addEventListener("input", calculate);
+      inputs[key].addEventListener("blur", calculate);
+    });
+
+    calculate();
+
+    if (window.hbspt && window.hbspt.forms && window.hbspt.forms.create) {
+      createHsForm();
+    } else {
+      window.addEventListener("load", () => {
+        if (window.hbspt && window.hbspt.forms && window.hbspt.forms.create) {
+          createHsForm();
+        }
+      });
+    }
+
+    function createHsForm() {
+      window.hbspt.forms.create({
+        region: "na1",
+        portalId: "REPLACE_ME",
+        formId: "REPLACE_ME",
+        target: "#roi-hs-form",
+        onFormReady: function($form) {
+          formElement = $form && $form[0] ? $form[0] : document.querySelector("#roi-hs-form form");
+          updateHiddenFields();
+          if (focusOnReady) {
+            focusFormField();
+            focusOnReady = false;
+          }
+        },
+        onFormSubmit: function($form) {
+          formElement = $form && $form[0] ? $form[0] : document.querySelector("#roi-hs-form form");
+          updateHiddenFields();
+        }
+      });
+    }
+  </script>
+</body>
+</html>
+<!--
+TESTING CHECKLIST:
+- Desktop sticky results card stays visible while scrolling inputs.
+- Mobile layout stacks inputs, results, and form in order.
+- Hidden fields populate in HubSpot form for each output and inputs JSON.
+- Form submission creates a contact with the ROI values stored.
+-->
