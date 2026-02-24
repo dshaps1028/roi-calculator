@@ -51,7 +51,7 @@ SETUP NOTES:
     }
 
     body.modal-open .app-shell {
-      filter: brightness(1.12);
+      filter: brightness(1.12) blur(6px);
       opacity: 0.82;
     }
 
@@ -62,7 +62,16 @@ SETUP NOTES:
     }
 
     .intro {
-      margin-bottom: 28px;
+      margin-bottom: 52px;
+    }
+
+    .section-divider {
+      display: block;
+      width: 100vw;
+      border: 0;
+      border-top: 1px solid var(--border);
+      margin: 0 0 52px;
+      margin-left: calc(50% - 50vw);
     }
 
     .eyebrow {
@@ -119,11 +128,16 @@ SETUP NOTES:
     }
 
     .card {
-      background: var(--surface);
+      background: linear-gradient(180deg,var(--token-3ea1e294-4131-4eaa-be41-8d645589199e,#1f1b19)0%,#1f1b1980 100%);
       border: 1px solid var(--border);
       border-radius: 1px;
       box-shadow: var(--shadow);
       padding: 24px;
+    }
+
+    .settings-card {
+      background: transparent;
+      border: none;
     }
 
     .section-title {
@@ -261,8 +275,12 @@ SETUP NOTES:
       margin: 0 0 6px;
       font-size: clamp(30px, 4vw, 40px);
       font-weight: 700;
-      color: var(--text);
+      color: #cff01a;
       font-family: var(--font-serif);
+    }
+
+    .main-stat .sub strong {
+      color: #cff01a;
     }
 
     .main-stat .sub {
@@ -299,6 +317,7 @@ SETUP NOTES:
       font-size: 16px;
       font-weight: 600;
       font-family: var(--font-serif);
+      color: #cff01a;
     }
 
     .metrics {
@@ -330,6 +349,12 @@ SETUP NOTES:
       font-weight: 600;
       font-family: var(--font-serif);
       text-align: right;
+      color: #cff01a;
+    }
+
+    .value.is-placeholder,
+    #roi_percent_annual_display.is-placeholder {
+      color: #8a8a8a !important;
     }
 
     .warning {
@@ -478,7 +503,7 @@ SETUP NOTES:
       font-family: var(--font-serif);
     }
 
-    #form-title {
+    #results-title {
       color: #cff01a;
     }
 
@@ -526,18 +551,18 @@ SETUP NOTES:
       <h1>Kinter Close Agent ROI Calculator.</h1>
       <p>Adjust the inputs below to see how automation could reduce manual effort, lower labor costs, and deliver measurable financial impact across your monthly operations.</p>
     </header>
+    <hr class="section-divider" />
 
     <main class="layout">
-      <section class="card" aria-labelledby="settings-title">
-        <h2 class="section-title" id="settings-title">Your Settings</h2><br />
-        <p class="section-copy">Provide a few details about your current process. Results update instantly as you make changes.</p>
+      <section class="card settings-card" aria-labelledby="settings-title">
+        <h2 class="section-title" id="settings-title">Tell Us About Yourself</h2><br />
         <form id="roi-inputs" novalidate>
           <fieldset>
             <div class="field-grid">
               <div class="field">
                 <label for="industry">Your Industry</label>
                 <select id="industry" name="industry" aria-describedby="industry_hint industry_error" required>
-                  <option value="">Select an industry</option>
+                  <option value="">--</option>
                   <option value="Technology">Technology</option>
                   <option value="Financial Services">Financial Services</option>
                   <option value="Healthcare">Healthcare</option>
@@ -551,7 +576,7 @@ SETUP NOTES:
               <div class="field">
                 <label for="role">Your Role</label>
                 <select id="role" name="role" aria-describedby="role_hint role_error" required>
-                  <option value="">Select a role</option>
+                  <option value="">--</option>
                   <option value="Controller">Controller</option>
                   <option value="VP Finance">VP Finance</option>
                   <option value="CFO">CFO</option>
@@ -568,13 +593,13 @@ SETUP NOTES:
               </div>
               <div class="field">
                 <label for="days_to_close">Current Days to Close</label>
-                <input id="days_to_close" name="days_to_close" type="number" inputmode="numeric" min="0" step="1" value="10" aria-describedby="days_to_close_hint days_to_close_error" required />
+                <input id="days_to_close" name="days_to_close" type="number" inputmode="numeric" min="0" step="1" value="" placeholder="--" aria-describedby="days_to_close_hint days_to_close_error" required />
                 <span class="hint" id="days_to_close_hint">Current close duration in days.</span>
                 <span class="error" id="days_to_close_error" aria-live="polite"></span>
               </div>
               <div class="field">
                 <label for="manual_work_hours">Manual Hours Spent</label>
-                <input id="manual_work_hours" name="manual_work_hours" type="number" inputmode="decimal" min="0" step="1" value="120" aria-describedby="manual_work_hours_hint manual_work_hours_error" required />
+                <input id="manual_work_hours" name="manual_work_hours" type="number" inputmode="decimal" min="0" step="1" value="" placeholder="--" aria-describedby="manual_work_hours_hint manual_work_hours_error" required />
                 <span class="hint" id="manual_work_hours_hint">Hours you spend manually closing the books each cycle</span>
                 <span class="error" id="manual_work_hours_error" aria-live="polite"></span>
               </div>
@@ -586,13 +611,13 @@ SETUP NOTES:
             <div class="field-grid">
               <div class="field">
                 <label for="yearly_inhouse_cost">Yearly in-house cost</label>
-                <input id="yearly_inhouse_cost" name="yearly_inhouse_cost" type="number" inputmode="decimal" min="0" step="100" value="650000" aria-describedby="yearly_inhouse_cost_hint yearly_inhouse_cost_error" required />
+                <input id="yearly_inhouse_cost" name="yearly_inhouse_cost" type="number" inputmode="decimal" min="0" step="100" value="" placeholder="--" aria-describedby="yearly_inhouse_cost_hint yearly_inhouse_cost_error" required />
                 <span class="hint" id="yearly_inhouse_cost_hint">Annual internal finance cost.</span>
                 <span class="error" id="yearly_inhouse_cost_error" aria-live="polite"></span>
               </div>
               <div class="field">
                 <label for="yearly_outsourced_cost">Yearly outsourced cost</label>
-                <input id="yearly_outsourced_cost" name="yearly_outsourced_cost" type="number" inputmode="decimal" min="0" step="100" value="120000" aria-describedby="yearly_outsourced_cost_hint yearly_outsourced_cost_error" required />
+                <input id="yearly_outsourced_cost" name="yearly_outsourced_cost" type="number" inputmode="decimal" min="0" step="100" value="" placeholder="--" aria-describedby="yearly_outsourced_cost_hint yearly_outsourced_cost_error" required />
                 <span class="hint" id="yearly_outsourced_cost_hint">Annual external finance cost.</span>
                 <span class="error" id="yearly_outsourced_cost_error" aria-live="polite"></span>
               </div>
@@ -604,7 +629,7 @@ SETUP NOTES:
             <div class="field-grid">
               <div class="field">
                 <label for="finance_fte">Number of Finance &amp; Accounting FTEs</label>
-                <input id="finance_fte" name="finance_fte" type="number" inputmode="numeric" min="0" step="1" value="8" aria-describedby="finance_fte_hint finance_fte_error" required />
+                <input id="finance_fte" name="finance_fte" type="number" inputmode="numeric" min="0" step="1" value="1" placeholder="--" aria-describedby="finance_fte_hint finance_fte_error" required />
                 <span class="hint" id="finance_fte_hint">Those specifically involved in the close process</span>
                 <span class="error" id="finance_fte_error" aria-live="polite"></span>
               </div>
@@ -616,41 +641,37 @@ SETUP NOTES:
       <aside class="results-column">
         <section class="card results-card" aria-live="polite" aria-labelledby="results-title">
           <div>
-            <h2 class="section-title" id="results-title">Results Summary</h2>
+            <h2 class="section-title" id="results-title">Your ROI Results Summary</h2>
           </div>
           <div class="main-stat">
             <p class="label">Estimated annual net savings</p>
-            <p class="value" id="annual_net_savings_display">$--</p>
-            <p class="sub">That equals <strong id="roi_percent_annual_display">--</strong> return on investment.</p>
+            <p class="value is-placeholder" id="annual_net_savings_display">$--</p>
+            <p class="sub">That equals <strong class="is-placeholder" id="roi_percent_annual_display">--</strong> return on investment.</p>
           </div>
           <div class="metrics">
             <div class="metric-tile">
-              <span class="label">Manual Reconciliation Hours Saved</span>
-              <span class="value" id="hours_saved_monthly_display">-- hours</span>
-            </div>
-            <div class="metric-tile">
               <span class="label">Annual Labor Cost Savings</span>
-              <span class="value" id="labor_savings_monthly_display">$--</span>
+              <span class="value is-placeholder" id="labor_savings_monthly_display">$--</span>
             </div>
             <div class="metric-tile">
               <span class="label">Outsourced Cost Savings</span>
-              <span class="value" id="net_savings_monthly_tile_display">$--</span>
+              <span class="value is-placeholder" id="net_savings_monthly_tile_display">$--</span>
             </div>
             <div class="metric-tile">
               <span class="label">Finance Capacity Unlocked</span>
-              <span class="value" id="annual_net_savings_tile_display">$--</span>
+              <span class="value is-placeholder" id="annual_net_savings_tile_display">$--</span>
             </div>
             <div class="metric-tile">
               <span class="label">Days to Close Eliminated</span>
-              <span class="value" id="days_close_eliminated_display">-- days</span>
+              <span class="value is-placeholder" id="days_close_eliminated_display">-- days</span>
             </div>
             <div class="metric-tile">
-              <span class="label">Annual Labor Cost Savings</span>
-              <span class="value" id="payback_months_tile_display">$--</span>
+              <span class="label">Manual Hours Saved</span>
+              <span class="value is-placeholder" id="hours_saved_monthly_display">-- hours</span>
             </div>
           </div>
           <div class="warning" id="payback_warning" role="status" aria-live="polite"></div>
-          <button class="cta" id="scroll_to_form" type="button">Get my ROI report</button>
+          <button class="cta" id="scroll_to_form" type="button">Get Personalized ROI report</button>
           <p class="cta-note">We will send the full breakdown and recommendations.</p>
         </section>
       </aside>
@@ -707,8 +728,8 @@ SETUP NOTES:
         manual_work_hours: 120,
         yearly_inhouse_cost: 650000,
         yearly_outsourced_cost: 120000,
-        finance_fte: 8,
-        accounting_employees: 5,
+        finance_fte: 1,
+        accounting_employees: null,
         industry: "",
         role: "",
       },
@@ -751,7 +772,10 @@ SETUP NOTES:
     };
 
     const inputs = Object.keys(state.inputs).reduce((acc, key) => {
-      acc[key] = document.getElementById(key);
+      const el = document.getElementById(key);
+      if (el) {
+        acc[key] = el;
+      }
       return acc;
     }, {});
 
@@ -785,7 +809,7 @@ SETUP NOTES:
       }
 
       if (value === "") {
-        return { value: null, error: "This field is required." };
+        return { value: null, error: "" };
       }
 
       const numeric = Number(value);
@@ -807,6 +831,9 @@ SETUP NOTES:
     function updateValidation(key, error) {
       const input = inputs[key];
       const errorEl = document.getElementById(`${key}_error`);
+      if (!input || !errorEl) {
+        return;
+      }
       if (error) {
         input.setAttribute("aria-invalid", "true");
         errorEl.textContent = error;
@@ -829,16 +856,18 @@ SETUP NOTES:
       });
 
       state.valid = valid;
-      if (!valid) {
-        renderOutputs(null);
-        return;
-      }
 
-      const daysCloseEliminated = state.inputs.days_to_close * 0.65;
-      const hoursSaved = 0;
-      const laborSavings = 0;
-      const netSavings = 0;
-      const annualNetSavings = 0;
+      const daysCloseEliminated =
+        state.inputs.days_to_close === null
+          ? null
+          : state.inputs.days_to_close * 0.65;
+      const hoursSaved =
+        state.inputs.manual_work_hours === null || state.inputs.finance_fte === null
+          ? null
+          : state.inputs.manual_work_hours * 0.65 * state.inputs.finance_fte;
+      const laborSavings = null;
+      const netSavings = null;
+      const annualNetSavings = null;
       const roiPercentAnnual = null;
       const paybackMonths = null;
 
@@ -867,25 +896,80 @@ SETUP NOTES:
       return percentFormatter.format(value);
     }
 
+    function setOutputValue(el, valueText, isPlaceholder) {
+      if (!el) {
+        return;
+      }
+      el.textContent = valueText;
+      el.classList.toggle("is-placeholder", isPlaceholder);
+    }
+
     function renderOutputs(outputs) {
       if (!outputs) {
         Object.keys(outputEls).forEach((key) => {
-          outputEls[key].textContent = "--";
+          if (key === "days_close_eliminated") {
+            setOutputValue(outputEls[key], "-- days", true);
+            return;
+          }
+          if (key === "hours_saved_monthly") {
+            setOutputValue(outputEls[key], "-- hours", true);
+            return;
+          }
+          if (
+            key === "labor_savings_monthly" ||
+            key === "net_savings_monthly" ||
+            key === "net_savings_monthly_tile" ||
+            key === "annual_net_savings" ||
+            key === "annual_net_savings_tile"
+          ) {
+            setOutputValue(outputEls[key], "$--", true);
+            return;
+          }
+          setOutputValue(outputEls[key], "--", true);
         });
+        setOutputValue(outputEls.roi_percent_annual, "--", true);
         warningEl.style.display = "none";
         updateHiddenFields();
         return;
       }
 
-      outputEls.hours_saved_monthly.textContent = `${formatNumber(outputs.hours_saved_monthly)} hrs`;
-      outputEls.days_close_eliminated.textContent = `${formatNumber(outputs.days_close_eliminated)} days`;
-      outputEls.labor_savings_monthly.textContent = formatCurrency(outputs.labor_savings_monthly);
-      outputEls.net_savings_monthly.textContent = formatCurrency(outputs.net_savings_monthly);
-      outputEls.net_savings_monthly_tile.textContent = formatCurrency(outputs.net_savings_monthly);
-      outputEls.annual_net_savings.textContent = formatCurrency(outputs.annual_net_savings);
-      outputEls.annual_net_savings_tile.textContent = formatCurrency(outputs.annual_net_savings);
+      setOutputValue(
+        outputEls.hours_saved_monthly,
+        outputs.hours_saved_monthly === null ? "-- hours" : `${formatNumber(outputs.hours_saved_monthly)} hrs`,
+        outputs.hours_saved_monthly === null
+      );
+      setOutputValue(
+        outputEls.days_close_eliminated,
+        outputs.days_close_eliminated === null ? "-- days" : `${formatNumber(outputs.days_close_eliminated)} days`,
+        outputs.days_close_eliminated === null
+      );
+      setOutputValue(
+        outputEls.labor_savings_monthly,
+        outputs.labor_savings_monthly === null ? "$--" : formatCurrency(outputs.labor_savings_monthly),
+        outputs.labor_savings_monthly === null
+      );
+      setOutputValue(
+        outputEls.net_savings_monthly,
+        outputs.net_savings_monthly === null ? "$--" : formatCurrency(outputs.net_savings_monthly),
+        outputs.net_savings_monthly === null
+      );
+      setOutputValue(
+        outputEls.net_savings_monthly_tile,
+        outputs.net_savings_monthly === null ? "$--" : formatCurrency(outputs.net_savings_monthly),
+        outputs.net_savings_monthly === null
+      );
+      setOutputValue(
+        outputEls.annual_net_savings,
+        outputs.annual_net_savings === null ? "$--" : formatCurrency(outputs.annual_net_savings),
+        outputs.annual_net_savings === null
+      );
+      setOutputValue(
+        outputEls.annual_net_savings_tile,
+        outputs.annual_net_savings === null ? "$--" : formatCurrency(outputs.annual_net_savings),
+        outputs.annual_net_savings === null
+      );
 
-      outputEls.roi_percent_annual.textContent = "--";
+      setOutputValue(outputEls.roi_percent_annual, "--", true);
       warningEl.style.display = "none";
 
       updateHiddenFields();
@@ -963,7 +1047,9 @@ SETUP NOTES:
     });
 
     Object.keys(inputs).forEach((key) => {
-      inputs[key].addEventListener("input", calculate);
+      if (key !== "days_to_close" && key !== "manual_work_hours") {
+        inputs[key].addEventListener("input", calculate);
+      }
       inputs[key].addEventListener("blur", calculate);
     });
 
