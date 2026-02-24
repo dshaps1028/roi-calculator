@@ -46,6 +46,15 @@ SETUP NOTES:
       line-height: 1.5;
     }
 
+    .app-shell {
+      transition: filter 0.25s ease, opacity 0.25s ease;
+    }
+
+    body.modal-open .app-shell {
+      filter: brightness(1.12);
+      opacity: 0.82;
+    }
+
     .page {
       max-width: 1180px;
       margin: 0 auto;
@@ -174,6 +183,15 @@ SETUP NOTES:
       font-family: var(--font-sans);
     }
 
+    label,
+    .label,
+    .hs-form-frame label,
+    .hbspt-form label {
+      font-family: var(--font-grotesk) !important;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
     input[type="number"],
     select {
       padding: 12px 14px;
@@ -262,7 +280,7 @@ SETUP NOTES:
 
     .secondary-stat {
       padding: 12px 14px;
-      border-radius: var(--radius);
+      border-radius: 1px;
       border: 1px solid var(--border);
       background: var(--surface);
       display: flex;
@@ -371,28 +389,73 @@ SETUP NOTES:
     .modal-overlay {
       position: fixed;
       inset: 0;
-      background: rgba(0, 0, 0, 0.7);
-      display: none;
+      background: rgba(255, 255, 255, 0.12);
+      backdrop-filter: blur(3px);
+      display: flex;
       align-items: center;
       justify-content: center;
       padding: 24px;
       z-index: 1000;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s ease, background 0.25s ease, backdrop-filter 0.25s ease;
     }
 
     .modal-overlay.is-open {
-      display: flex;
+      opacity: 1;
+      pointer-events: auto;
     }
 
     .modal {
-      width: min(720px, 100%);
+      width: min(980px, 100%);
       background: var(--surface);
       border: 1px solid var(--border);
-      border-radius: var(--radius);
+      border-radius: 1px;
       box-shadow: var(--shadow-soft);
-      padding: 24px;
+      padding: 0;
       position: relative;
       max-height: 90vh;
       overflow-y: auto;
+    }
+
+    .modal-body {
+      display: grid;
+      grid-template-columns: minmax(0, 1.1fr) minmax(300px, 0.9fr);
+      gap: 0;
+      align-items: stretch;
+    }
+
+    .modal-form-column {
+      padding: 24px;
+    }
+
+    .modal-side-column {
+      border-left: 1px solid var(--border);
+      padding-left: 0;
+      min-height: 100%;
+      overflow: hidden;
+    }
+
+    .modal-side-column h3 {
+      margin: 0 0 10px;
+      font-family: var(--font-serif);
+      font-size: 18px;
+      color: #cff01a;
+    }
+
+    .modal-side-column video {
+      width: 100%;
+      height: 100%;
+      display: block;
+      object-fit: cover;
+      border: none;
+      border-radius: 0;
+      background: #000;
+    }
+
+    .modal .hs-form-frame,
+    .modal .hs-form-frame iframe {
+      border-radius: 1px !important;
     }
 
     .modal-close {
@@ -404,6 +467,8 @@ SETUP NOTES:
       color: var(--text);
       font-size: 22px;
       cursor: pointer;
+      z-index: 20;
+      pointer-events: auto;
     }
 
     .form-section h3,
@@ -411,6 +476,10 @@ SETUP NOTES:
       margin: 0 0 8px;
       font-size: 20px;
       font-family: var(--font-serif);
+    }
+
+    #form-title {
+      color: #cff01a;
     }
 
     .form-section p,
@@ -432,11 +501,27 @@ SETUP NOTES:
       .secondary {
         grid-template-columns: 1fr;
       }
+
+      .modal-body {
+        grid-template-columns: 1fr;
+      }
+
+      .modal-form-column {
+        padding: 24px;
+      }
+
+      .modal-side-column {
+        border-left: none;
+        border-top: 1px solid var(--border);
+        padding-left: 0;
+        padding-top: 0;
+      }
     }
   </style>
 </head>
 <body>
-  <div class="page">
+  <div class="app-shell">
+    <div class="page">
     <header class="intro">
       <h1>Kinter Close Agent ROI Calculator.</h1>
       <p>Adjust the inputs below to see how automation could reduce manual effort, lower labor costs, and deliver measurable financial impact across your monthly operations.</p>
@@ -571,18 +656,33 @@ SETUP NOTES:
       </aside>
     </main>
 
-    <div class="modal-overlay" id="roi-modal" role="dialog" aria-modal="true" aria-labelledby="form-title">
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="roi-modal" role="dialog" aria-modal="true" aria-labelledby="form-title">
       <div class="modal">
         <button class="modal-close" id="roi-modal-close" type="button" aria-label="Close">
           &times;
         </button>
-        <h3 id="form-title">Get the full ROI report</h3>
-        <p>Share your details and we will email a personalized ROI report based on your current inputs.</p>
-        <script charset="utf-8" type="text/javascript" src="//js.hsforms.net/forms/v2.js"></script>
-        <div id="roi-hs-form"></div>
+        <div class="modal-body">
+          <div class="modal-form-column">
+            <h2 class="section-title" id="form-title">Download Your Report</h2>
+            <script src="https://js-na2.hsforms.net/forms/embed/244569464.js" defer></script>
+            <div
+              class="hs-form-frame"
+              data-region="na2"
+              data-form-id="2a601e38-57b2-4eaa-ad61-005aa11b00b3"
+              data-portal-id="244569464"
+            ></div>
+          </div>
+          <aside class="modal-side-column">
+            <video autoplay muted loop playsinline preload="metadata">
+              <source src="https://framerusercontent.com/assets/mGyagTKamCQB6pWGXc5lc9lrltU.mp4" type="video/mp4" />
+            </video>
+          </aside>
+        </div>
       </div>
     </div>
-  </div>
 
   <script>
     const HS_FIELDS = {
@@ -591,6 +691,14 @@ SETUP NOTES:
       roiPercent: "roi_roi_percent",
       paybackMonths: "roi_payback_months",
       inputsJson: "roi_inputs_json",
+      daysToClose: "days_to_close",
+      manualWorkHours: "manual_work_hours",
+      yearlyInhouseCost: "yearly_inhouse_cost",
+      yearlyOutsourcedCost: "yearly_outsourced_cost",
+      financeFte: "finance_fte",
+      accountingEmployees: "accounting_employees",
+      industry: "industry",
+      role: "role",
     };
 
     const state = {
@@ -793,6 +901,14 @@ SETUP NOTES:
         [HS_FIELDS.annualNetSavings]: state.outputs.annual_net_savings,
         [HS_FIELDS.roiPercent]: state.outputs.roi_percent_annual === null ? "" : state.outputs.roi_percent_annual,
         [HS_FIELDS.paybackMonths]: state.outputs.payback_months === null ? "No payback" : state.outputs.payback_months,
+        [HS_FIELDS.daysToClose]: state.inputs.days_to_close,
+        [HS_FIELDS.manualWorkHours]: state.inputs.manual_work_hours,
+        [HS_FIELDS.yearlyInhouseCost]: state.inputs.yearly_inhouse_cost,
+        [HS_FIELDS.yearlyOutsourcedCost]: state.inputs.yearly_outsourced_cost,
+        [HS_FIELDS.financeFte]: state.inputs.finance_fte,
+        [HS_FIELDS.accountingEmployees]: state.inputs.accounting_employees,
+        [HS_FIELDS.industry]: state.inputs.industry,
+        [HS_FIELDS.role]: state.inputs.role,
         [HS_FIELDS.inputsJson]: JSON.stringify({
           inputs: state.inputs,
           outputs: state.outputs,
@@ -821,12 +937,14 @@ SETUP NOTES:
 
     function openModal() {
       modalOverlay.classList.add("is-open");
+      document.body.classList.add("modal-open");
       document.body.style.overflow = "hidden";
       focusFormField();
     }
 
     function closeModal() {
       modalOverlay.classList.remove("is-open");
+      document.body.classList.remove("modal-open");
       document.body.style.overflow = "";
     }
 
@@ -850,37 +968,6 @@ SETUP NOTES:
     });
 
     calculate();
-
-    if (window.hbspt && window.hbspt.forms && window.hbspt.forms.create) {
-      createHsForm();
-    } else {
-      window.addEventListener("load", () => {
-        if (window.hbspt && window.hbspt.forms && window.hbspt.forms.create) {
-          createHsForm();
-        }
-      });
-    }
-
-    function createHsForm() {
-      window.hbspt.forms.create({
-        region: "na1",
-        portalId: "REPLACE_ME",
-        formId: "REPLACE_ME",
-        target: "#roi-hs-form",
-        onFormReady: function($form) {
-          formElement = $form && $form[0] ? $form[0] : document.querySelector("#roi-hs-form form");
-          updateHiddenFields();
-          if (focusOnReady) {
-            focusFormField();
-            focusOnReady = false;
-          }
-        },
-        onFormSubmit: function($form) {
-          formElement = $form && $form[0] ? $form[0] : document.querySelector("#roi-hs-form form");
-          updateHiddenFields();
-        }
-      });
-    }
   </script>
 </body>
 </html>
