@@ -14,7 +14,7 @@ Open `new_calculator.html` in a browser. It runs entirely client-side.
 - Role (dropdown)
 - Number of days to close the books
 - Hours spent on manual work
-- Yearly in-house cost
+- In-house bookeeper salary
 - Yearly outsourced cost
 - Number of finance & accounting FTEs
 - No of Accounting Employees
@@ -28,6 +28,9 @@ Open `new_calculator.html` in a browser. It runs entirely client-side.
 
 ### Calculation Notes (Current State)
 - Days of Close Eliminated = `days_to_close * 0.65`
+- Manual Reconciliation Hours Saved = `manual_work_hours * 0.65 * finance_fte`
+- Estimated Annual Net Savings = `((yearly_inhouse_cost * finance_fte) + yearly_outsourced_cost) * 0.6`
+- Blank `yearly_inhouse_cost` and `yearly_outsourced_cost` are treated as `0`; blank `finance_fte` defaults to `1`
 - Other output formulas are placeholders and should be defined as the model is finalized.
 
 ## HubSpot Form

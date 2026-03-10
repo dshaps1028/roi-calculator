@@ -190,6 +190,23 @@ SETUP NOTES:
       gap: 8px;
     }
 
+    .input-with-prefix {
+      position: relative;
+      display: flex;
+      align-items: center;
+      width: 100%;
+    }
+
+    .input-prefix {
+      position: absolute;
+      left: 14px;
+      color: var(--text);
+      opacity: 0.7;
+      font-size: 15px;
+      font-family: var(--font-sans);
+      pointer-events: none;
+    }
+
     label {
       font-size: 14px;
       font-weight: 500;
@@ -216,6 +233,11 @@ SETUP NOTES:
       background: var(--surface);
       color: var(--text);
       transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .input-with-prefix input[type="number"] {
+      width: 100%;
+      padding-left: 30px;
     }
 
     input[type="number"]:focus,
@@ -279,15 +301,11 @@ SETUP NOTES:
       font-family: var(--font-serif);
     }
 
-    .main-stat .sub strong {
-      color: #cff01a;
-    }
-
-    .main-stat .sub {
-      margin: 0;
+    .results-locked-note {
+      margin: -8px 0 0;
       color: var(--text);
       opacity: 0.8;
-      font-size: 14px;
+      font-size: 13px;
     }
 
     .secondary {
@@ -352,19 +370,8 @@ SETUP NOTES:
       color: #cff01a;
     }
 
-    .value.is-placeholder,
-    #roi_percent_annual_display.is-placeholder {
+    .value.is-placeholder {
       color: #8a8a8a !important;
-    }
-
-    .warning {
-      border-left: 3px solid var(--accent);
-      padding: 10px 12px;
-      background: rgba(207, 240, 26, 0.12);
-      color: var(--text);
-      border-radius: var(--radius);
-      font-size: 13px;
-      display: none;
     }
 
     .cta {
@@ -483,6 +490,34 @@ SETUP NOTES:
       border-radius: 1px !important;
     }
 
+    .details-modal {
+      width: min(720px, 100%);
+      padding: 32px 24px 24px;
+    }
+
+    .details-modal .section-title {
+      margin-bottom: 10px;
+    }
+
+    .details-intro {
+      margin: 0 0 24px;
+      max-width: 52ch;
+    }
+
+    .details-modal .metrics {
+      gap: 10px;
+    }
+
+    .details-modal .metric-tile {
+      padding: 14px 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .details-modal .metric-tile:last-child {
+      border-bottom: none;
+      padding-bottom: 0;
+    }
+
     .modal-close {
       position: absolute;
       top: 14px;
@@ -560,38 +595,6 @@ SETUP NOTES:
           <fieldset>
             <div class="field-grid">
               <div class="field">
-                <label for="industry">Your Industry</label>
-                <select id="industry" name="industry" aria-describedby="industry_hint industry_error" required>
-                  <option value="">--</option>
-                  <option value="Technology">Technology</option>
-                  <option value="Financial Services">Financial Services</option>
-                  <option value="Healthcare">Healthcare</option>
-                  <option value="Manufacturing">Manufacturing</option>
-                  <option value="Professional Services">Professional Services</option>
-                  <option value="Retail">Retail</option>
-                  <option value="Other">Other</option>
-                </select>
-                <span class="error" id="industry_error" aria-live="polite"></span>
-              </div>
-              <div class="field">
-                <label for="role">Your Role</label>
-                <select id="role" name="role" aria-describedby="role_hint role_error" required>
-                  <option value="">--</option>
-                  <option value="Controller">Controller</option>
-                  <option value="VP Finance">VP Finance</option>
-                  <option value="CFO">CFO</option>
-                  <option value="Accounting Manager">Accounting Manager</option>
-                  <option value="FP&A Manager">FP&A Manager</option>
-                  <option value="Senior Accountant">Senior Accountant</option>
-                  <option value="Junior Accountant">Junior Accountant</option>
-                  <option value="Bookkeeper">Bookkeeper</option>
-                  <option value="AP/AR Manager">AP/AR Manager</option>
-                  <option value="Finance Operations">Finance Operations</option>
-                  <option value="Other">Other</option>
-                </select>
-                <span class="error" id="role_error" aria-live="polite"></span>
-              </div>
-              <div class="field">
                 <label for="days_to_close">Current Days to Close</label>
                 <input id="days_to_close" name="days_to_close" type="number" inputmode="numeric" min="0" step="1" value="" placeholder="--" aria-describedby="days_to_close_hint days_to_close_error" required />
                 <span class="hint" id="days_to_close_hint">Current close duration in days.</span>
@@ -600,24 +603,29 @@ SETUP NOTES:
               <div class="field">
                 <label for="manual_work_hours">Manual Hours Spent</label>
                 <input id="manual_work_hours" name="manual_work_hours" type="number" inputmode="decimal" min="0" step="1" value="" placeholder="--" aria-describedby="manual_work_hours_hint manual_work_hours_error" required />
-                <span class="hint" id="manual_work_hours_hint">Hours you spend manually closing the books each cycle</span>
+                <span class="hint" id="manual_work_hours_hint">Hours you personally spend manually closing the books each cycle</span>
                 <span class="error" id="manual_work_hours_error" aria-live="polite"></span>
               </div>
             </div>
           </fieldset>
 
           <fieldset>
-            <legend>Cost and coverage</legend>
             <div class="field-grid">
               <div class="field">
-                <label for="yearly_inhouse_cost">Yearly in-house cost</label>
-                <input id="yearly_inhouse_cost" name="yearly_inhouse_cost" type="number" inputmode="decimal" min="0" step="100" value="" placeholder="--" aria-describedby="yearly_inhouse_cost_hint yearly_inhouse_cost_error" required />
+                <label for="yearly_inhouse_cost">Avg In-House Bookkeeper Salary</label>
+                <div class="input-with-prefix">
+                  <span class="input-prefix" aria-hidden="true">$</span>
+                  <input id="yearly_inhouse_cost" name="yearly_inhouse_cost" type="number" inputmode="decimal" min="0" step="100" value="" placeholder="--" aria-describedby="yearly_inhouse_cost_hint yearly_inhouse_cost_error" required />
+                </div>
                 <span class="hint" id="yearly_inhouse_cost_hint">Annual internal finance cost.</span>
                 <span class="error" id="yearly_inhouse_cost_error" aria-live="polite"></span>
               </div>
               <div class="field">
-                <label for="yearly_outsourced_cost">Yearly outsourced cost</label>
-                <input id="yearly_outsourced_cost" name="yearly_outsourced_cost" type="number" inputmode="decimal" min="0" step="100" value="" placeholder="--" aria-describedby="yearly_outsourced_cost_hint yearly_outsourced_cost_error" required />
+                <label for="yearly_outsourced_cost">Yearly outsourced costs</label>
+                <div class="input-with-prefix">
+                  <span class="input-prefix" aria-hidden="true">$</span>
+                  <input id="yearly_outsourced_cost" name="yearly_outsourced_cost" type="number" inputmode="decimal" min="0" step="100" value="" placeholder="--" aria-describedby="yearly_outsourced_cost_hint yearly_outsourced_cost_error" required />
+                </div>
                 <span class="hint" id="yearly_outsourced_cost_hint">Annual external finance cost.</span>
                 <span class="error" id="yearly_outsourced_cost_error" aria-live="polite"></span>
               </div>
@@ -625,10 +633,9 @@ SETUP NOTES:
           </fieldset>
 
           <fieldset>
-            <legend>Investment</legend>
             <div class="field-grid">
               <div class="field">
-                <label for="finance_fte">Number of Finance &amp; Accounting FTEs</label>
+                <label for="finance_fte">Number of In-House Bookkeepers</label>
                 <input id="finance_fte" name="finance_fte" type="number" inputmode="numeric" min="0" step="1" value="1" placeholder="--" aria-describedby="finance_fte_hint finance_fte_error" required />
                 <span class="hint" id="finance_fte_hint">Those specifically involved in the close process</span>
                 <span class="error" id="finance_fte_error" aria-live="polite"></span>
@@ -646,31 +653,8 @@ SETUP NOTES:
           <div class="main-stat">
             <p class="label">Estimated annual net savings</p>
             <p class="value is-placeholder" id="annual_net_savings_display">$--</p>
-            <p class="sub">That equals <strong class="is-placeholder" id="roi_percent_annual_display">--</strong> return on investment.</p>
           </div>
-          <div class="metrics">
-            <div class="metric-tile">
-              <span class="label">Annual Labor Cost Savings</span>
-              <span class="value is-placeholder" id="labor_savings_monthly_display">$--</span>
-            </div>
-            <div class="metric-tile">
-              <span class="label">Outsourced Cost Savings</span>
-              <span class="value is-placeholder" id="net_savings_monthly_tile_display">$--</span>
-            </div>
-            <div class="metric-tile">
-              <span class="label">Finance Capacity Unlocked</span>
-              <span class="value is-placeholder" id="annual_net_savings_tile_display">$--</span>
-            </div>
-            <div class="metric-tile">
-              <span class="label">Days to Close Eliminated</span>
-              <span class="value is-placeholder" id="days_close_eliminated_display">-- days</span>
-            </div>
-            <div class="metric-tile">
-              <span class="label">Manual Hours Saved</span>
-              <span class="value is-placeholder" id="hours_saved_monthly_display">-- hours</span>
-            </div>
-          </div>
-          <div class="warning" id="payback_warning" role="status" aria-live="polite"></div>
+          <p class="results-locked-note">The full breakdown appears after you submit the ROI form.</p>
           <button class="cta" id="scroll_to_form" type="button">Get Personalized ROI report</button>
           <p class="cta-note">We will send the full breakdown and recommendations.</p>
         </section>
@@ -705,34 +689,51 @@ SETUP NOTES:
       </div>
     </div>
 
+  <div class="modal-overlay" id="results-details-modal" role="dialog" aria-modal="true" aria-labelledby="results-details-title">
+      <div class="modal details-modal">
+        <button class="modal-close" id="results-details-close" type="button" aria-label="Close">
+          &times;
+        </button>
+        <h2 class="section-title" id="results-details-title">Your ROI breakdown</h2>
+        <p class="details-intro">Thanks. We sent the full report and unlocked the supporting metrics below for a quick review.</p>
+        <div class="metrics" aria-live="polite">
+          <div class="metric-tile">
+            <span class="label">Annual Labor Cost Savings</span>
+            <span class="value is-placeholder" id="annual_labor_cost_savings_display">$--</span>
+          </div>
+          <div class="metric-tile">
+            <span class="label">Outsourced Cost Savings</span>
+            <span class="value is-placeholder" id="outsourced_cost_savings_display">$--</span>
+          </div>
+          <div class="metric-tile">
+            <span class="label">Finance Capacity Unlocked</span>
+            <span class="value is-placeholder" id="finance_capacity_unlocked_display">$--</span>
+          </div>
+          <div class="metric-tile">
+            <span class="label">Days to Close Eliminated</span>
+            <span class="value is-placeholder" id="days_close_eliminated_display">-- days</span>
+          </div>
+          <div class="metric-tile">
+            <span class="label">Manual Hours Saved</span>
+            <span class="value is-placeholder" id="hours_saved_monthly_display">-- hours</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
   <script>
+    const HUBSPOT_FORM_ID = "2a601e38-57b2-4eaa-ad61-005aa11b00b3";
+
     const HS_FIELDS = {
       hoursSavedMonthly: "roi_hours_saved_monthly",
       annualNetSavings: "roi_annual_net_savings",
       roiPercent: "roi_roi_percent",
       paybackMonths: "roi_payback_months",
       inputsJson: "roi_inputs_json",
-      daysToClose: "days_to_close",
-      manualWorkHours: "manual_work_hours",
-      yearlyInhouseCost: "yearly_inhouse_cost",
-      yearlyOutsourcedCost: "yearly_outsourced_cost",
-      financeFte: "finance_fte",
-      accountingEmployees: "accounting_employees",
-      industry: "industry",
-      role: "role",
     };
 
     const state = {
-      inputs: {
-        days_to_close: 10,
-        manual_work_hours: 120,
-        yearly_inhouse_cost: 650000,
-        yearly_outsourced_cost: 120000,
-        finance_fte: 1,
-        accounting_employees: null,
-        industry: "",
-        role: "",
-      },
+      inputs: {},
       outputs: {
         days_close_eliminated: 0,
         hours_saved_monthly: 0,
@@ -760,41 +761,49 @@ SETUP NOTES:
       maximumFractionDigits: 0,
     });
 
-    const fieldConfig = {
-      days_to_close: { min: 0 },
-      manual_work_hours: { min: 0 },
-      yearly_inhouse_cost: { min: 0 },
-      yearly_outsourced_cost: { min: 0 },
-      finance_fte: { min: 0 },
-      accounting_employees: { min: 0 },
-      industry: { type: "select" },
-      role: { type: "select" },
-    };
-
-    const inputs = Object.keys(state.inputs).reduce((acc, key) => {
-      const el = document.getElementById(key);
-      if (el) {
-        acc[key] = el;
-      }
+    const calculatorForm = document.getElementById("roi-inputs");
+    const inputs = Array.from(calculatorForm.querySelectorAll("input[name], select[name], textarea[name]")).reduce((acc, el) => {
+      acc[el.name] = el;
       return acc;
     }, {});
+
+    const fieldConfig = Object.entries(inputs).reduce((acc, [key, el]) => {
+      const config = {};
+
+      if (el.tagName === "SELECT") {
+        config.type = "select";
+      }
+
+      if (el.min !== "" && !Number.isNaN(Number(el.min))) {
+        config.min = Number(el.min);
+      }
+
+      if (el.max !== "" && !Number.isNaN(Number(el.max))) {
+        config.max = Number(el.max);
+      }
+
+      acc[key] = config;
+      return acc;
+    }, {});
+
+    Object.keys(inputs).forEach((key) => {
+      state.inputs[key] = null;
+    });
 
     const outputEls = {
       days_close_eliminated: document.getElementById("days_close_eliminated_display"),
       hours_saved_monthly: document.getElementById("hours_saved_monthly_display"),
-      labor_savings_monthly: document.getElementById("labor_savings_monthly_display"),
-      net_savings_monthly: document.getElementById("net_savings_monthly_display"),
-      net_savings_monthly_tile: document.getElementById("net_savings_monthly_tile_display"),
+      labor_savings_monthly: document.getElementById("annual_labor_cost_savings_display"),
+      net_savings_monthly: document.getElementById("outsourced_cost_savings_display"),
+      annual_net_savings_detail: document.getElementById("finance_capacity_unlocked_display"),
       annual_net_savings: document.getElementById("annual_net_savings_display"),
-      annual_net_savings_tile: document.getElementById("annual_net_savings_tile_display"),
-      roi_percent_annual: document.getElementById("roi_percent_annual_display"),
     };
 
-    const warningEl = document.getElementById("payback_warning");
     const scrollButton = document.getElementById("scroll_to_form");
-    const modalOverlay = document.getElementById("roi-modal");
-    const modalClose = document.getElementById("roi-modal-close");
+    const formModal = document.getElementById("roi-modal");
+    const detailsModal = document.getElementById("results-details-modal");
 
+    let hubspotFormInstance = null;
     let formElement = null;
     let focusOnReady = false;
 
@@ -809,7 +818,13 @@ SETUP NOTES:
       }
 
       if (value === "") {
-        return { value: null, error: "" };
+        if (key === "finance_fte") {
+          return { value: 1, error: "" };
+        }
+        if (key === "yearly_inhouse_cost" || key === "yearly_outsourced_cost") {
+          return { value: 0, error: "" };
+        }
+        return { value: null, error: "This field is required." };
       }
 
       const numeric = Number(value);
@@ -817,11 +832,11 @@ SETUP NOTES:
         return { value: null, error: "Enter a valid number." };
       }
 
-      if (numeric < fieldConfig[key].min) {
+      if (config.min !== undefined && numeric < config.min) {
         return { value: null, error: "Value cannot be negative." };
       }
 
-      if (fieldConfig[key].max !== undefined && numeric > fieldConfig[key].max) {
+      if (config.max !== undefined && numeric > config.max) {
         return { value: null, error: "Value must be 100 or less." };
       }
 
@@ -865,9 +880,21 @@ SETUP NOTES:
         state.inputs.manual_work_hours === null || state.inputs.finance_fte === null
           ? null
           : state.inputs.manual_work_hours * 0.65 * state.inputs.finance_fte;
+      const hasAnnualSavingsInputs =
+        inputs.yearly_inhouse_cost.value.trim() !== "" ||
+        inputs.yearly_outsourced_cost.value.trim() !== "";
+      const annualNetSavings =
+        !hasAnnualSavingsInputs ||
+        state.inputs.yearly_inhouse_cost === null ||
+        state.inputs.finance_fte === null ||
+        state.inputs.yearly_outsourced_cost === null
+          ? null
+          : (
+              (state.inputs.yearly_inhouse_cost * state.inputs.finance_fte) +
+              state.inputs.yearly_outsourced_cost
+            ) * 0.6;
       const laborSavings = null;
       const netSavings = null;
-      const annualNetSavings = null;
       const roiPercentAnnual = null;
       const paybackMonths = null;
 
@@ -918,17 +945,14 @@ SETUP NOTES:
           if (
             key === "labor_savings_monthly" ||
             key === "net_savings_monthly" ||
-            key === "net_savings_monthly_tile" ||
             key === "annual_net_savings" ||
-            key === "annual_net_savings_tile"
+            key === "annual_net_savings_detail"
           ) {
             setOutputValue(outputEls[key], "$--", true);
             return;
           }
           setOutputValue(outputEls[key], "--", true);
         });
-        setOutputValue(outputEls.roi_percent_annual, "--", true);
-        warningEl.style.display = "none";
         updateHiddenFields();
         return;
       }
@@ -954,50 +978,57 @@ SETUP NOTES:
         outputs.net_savings_monthly === null
       );
       setOutputValue(
-        outputEls.net_savings_monthly_tile,
-        outputs.net_savings_monthly === null ? "$--" : formatCurrency(outputs.net_savings_monthly),
-        outputs.net_savings_monthly === null
-      );
-      setOutputValue(
         outputEls.annual_net_savings,
         outputs.annual_net_savings === null ? "$--" : formatCurrency(outputs.annual_net_savings),
         outputs.annual_net_savings === null
       );
       setOutputValue(
-        outputEls.annual_net_savings_tile,
+        outputEls.annual_net_savings_detail,
         outputs.annual_net_savings === null ? "$--" : formatCurrency(outputs.annual_net_savings),
         outputs.annual_net_savings === null
       );
 
-      setOutputValue(outputEls.roi_percent_annual, "--", true);
-      warningEl.style.display = "none";
-
       updateHiddenFields();
     }
 
-    function updateHiddenFields() {
-      if (!formElement) {
-        return;
+    function serializeFieldValue(value, fallback = "") {
+      if (value === null || value === undefined) {
+        return fallback;
       }
+      return String(value);
+    }
+
+    function updateHiddenFields() {
+      const inputFields = Object.entries(inputs).reduce((acc, [name, el]) => {
+        acc[name] = serializeFieldValue(el.value);
+        return acc;
+      }, {});
 
       const fields = {
-        [HS_FIELDS.hoursSavedMonthly]: state.outputs.hours_saved_monthly,
-        [HS_FIELDS.annualNetSavings]: state.outputs.annual_net_savings,
-        [HS_FIELDS.roiPercent]: state.outputs.roi_percent_annual === null ? "" : state.outputs.roi_percent_annual,
-        [HS_FIELDS.paybackMonths]: state.outputs.payback_months === null ? "No payback" : state.outputs.payback_months,
-        [HS_FIELDS.daysToClose]: state.inputs.days_to_close,
-        [HS_FIELDS.manualWorkHours]: state.inputs.manual_work_hours,
-        [HS_FIELDS.yearlyInhouseCost]: state.inputs.yearly_inhouse_cost,
-        [HS_FIELDS.yearlyOutsourcedCost]: state.inputs.yearly_outsourced_cost,
-        [HS_FIELDS.financeFte]: state.inputs.finance_fte,
-        [HS_FIELDS.accountingEmployees]: state.inputs.accounting_employees,
-        [HS_FIELDS.industry]: state.inputs.industry,
-        [HS_FIELDS.role]: state.inputs.role,
+        [HS_FIELDS.hoursSavedMonthly]: serializeFieldValue(state.outputs.hours_saved_monthly),
+        [HS_FIELDS.annualNetSavings]: serializeFieldValue(state.outputs.annual_net_savings),
+        [HS_FIELDS.roiPercent]: serializeFieldValue(state.outputs.roi_percent_annual),
+        [HS_FIELDS.paybackMonths]: serializeFieldValue(state.outputs.payback_months, "No payback"),
+        ...inputFields,
         [HS_FIELDS.inputsJson]: JSON.stringify({
           inputs: state.inputs,
           outputs: state.outputs,
         }),
       };
+
+      if (hubspotFormInstance && typeof hubspotFormInstance.setFieldValue === "function") {
+        Object.entries(fields).forEach(([name, value]) => {
+          try {
+            hubspotFormInstance.setFieldValue(name, value ? [value] : []);
+          } catch (error) {
+            /* Ignore missing or incompatible hidden fields in the embed. */
+          }
+        });
+      }
+
+      if (!formElement) {
+        return;
+      }
 
       Object.keys(fields).forEach((name) => {
         const input = formElement.querySelector(`input[name="${name}"]`);
@@ -1019,30 +1050,96 @@ SETUP NOTES:
       }
     }
 
-    function openModal() {
-      modalOverlay.classList.add("is-open");
-      document.body.classList.add("modal-open");
-      document.body.style.overflow = "hidden";
-      focusFormField();
+    function updateBodyModalState() {
+      const hasOpenModal = document.querySelector(".modal-overlay.is-open");
+      document.body.classList.toggle("modal-open", Boolean(hasOpenModal));
+      document.body.style.overflow = hasOpenModal ? "hidden" : "";
     }
 
-    function closeModal() {
-      modalOverlay.classList.remove("is-open");
-      document.body.classList.remove("modal-open");
-      document.body.style.overflow = "";
+    function openModal(modal) {
+      if (!modal) {
+        return;
+      }
+
+      modal.classList.add("is-open");
+      updateBodyModalState();
+
+      if (modal === formModal) {
+        focusFormField();
+        return;
+      }
+
+      if (modal === detailsModal) {
+        const closeButton = modal.querySelector(".modal-close");
+        if (closeButton) {
+          closeButton.focus({ preventScroll: true });
+        }
+      }
     }
 
-    scrollButton.addEventListener("click", openModal);
-    modalClose.addEventListener("click", closeModal);
-    modalOverlay.addEventListener("click", (event) => {
-      if (event.target === modalOverlay) {
-        closeModal();
+    function closeModal(modal) {
+      if (!modal) {
+        return;
+      }
+
+      modal.classList.remove("is-open");
+      updateBodyModalState();
+    }
+
+    function isTargetHubSpotEvent(event) {
+      return event && event.detail && event.detail.formId === HUBSPOT_FORM_ID;
+    }
+
+    function syncFormReferences(event) {
+      if (!isTargetHubSpotEvent(event) || !window.HubSpotFormsV4 || typeof window.HubSpotFormsV4.getFormFromEvent !== "function") {
+        return;
+      }
+
+      hubspotFormInstance = window.HubSpotFormsV4.getFormFromEvent(event);
+      formElement = formModal.querySelector("form") || formModal.querySelector(".hs-form-frame");
+    }
+
+    window.addEventListener("hs-form-event:on-ready", (event) => {
+      syncFormReferences(event);
+      updateHiddenFields();
+
+      if (focusOnReady && formModal.classList.contains("is-open")) {
+        focusFormField();
+        focusOnReady = false;
       }
     });
 
+    window.addEventListener("hs-form-event:on-submission:success", (event) => {
+      syncFormReferences(event);
+      updateHiddenFields();
+      closeModal(formModal);
+      openModal(detailsModal);
+    });
+
+    scrollButton.addEventListener("click", () => openModal(formModal));
+
+    document.querySelectorAll(".modal-close").forEach((button) => {
+      button.addEventListener("click", () => {
+        closeModal(button.closest(".modal-overlay"));
+      });
+    });
+
+    document.querySelectorAll(".modal-overlay").forEach((overlay) => {
+      overlay.addEventListener("click", (event) => {
+        if (event.target === overlay) {
+          closeModal(overlay);
+        }
+      });
+    });
+
     window.addEventListener("keydown", (event) => {
-      if (event.key === "Escape" && modalOverlay.classList.contains("is-open")) {
-        closeModal();
+      if (event.key !== "Escape") {
+        return;
+      }
+
+      const openOverlay = document.querySelector(".modal-overlay.is-open");
+      if (openOverlay) {
+        closeModal(openOverlay);
       }
     });
 
