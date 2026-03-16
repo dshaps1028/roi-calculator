@@ -728,7 +728,6 @@ SETUP NOTES:
       hoursSavedMonthly: "roi_hours_saved_monthly",
       annualNetSavings: "roi_annual_net_savings",
       roiPercent: "roi_roi_percent",
-      paybackMonths: "roi_payback_months",
       inputsJson: "roi_inputs_json",
     };
 
@@ -739,12 +738,16 @@ SETUP NOTES:
         hours_saved_monthly: 0,
         labor_savings_monthly: 0,
         net_savings_monthly: 0,
+        finance_capacity_unlocked: 0,
         annual_net_savings: 0,
         roi_percent_annual: 0,
-        payback_months: 0,
       },
       valid: true,
     };
+
+    const CLOSE_AUTOMATION_RATE = 0.65;
+    const SAVINGS_CAPTURE_RATE = 0.6;
+    const HOURS_PER_FTE_YEAR = 2080;
 
     const numberFormatter = new Intl.NumberFormat("en-US", {
       maximumFractionDigits: 1,
@@ -795,7 +798,7 @@ SETUP NOTES:
       hours_saved_monthly: document.getElementById("hours_saved_monthly_display"),
       labor_savings_monthly: document.getElementById("annual_labor_cost_savings_display"),
       net_savings_monthly: document.getElementById("outsourced_cost_savings_display"),
-      annual_net_savings_detail: document.getElementById("finance_capacity_unlocked_display"),
+      finance_capacity_unlocked: document.getElementById("finance_capacity_unlocked_display"),
       annual_net_savings: document.getElementById("annual_net_savings_display"),
     };
 
@@ -875,37 +878,53 @@ SETUP NOTES:
       const daysCloseEliminated =
         state.inputs.days_to_close === null
           ? null
-          : state.inputs.days_to_close * 0.65;
+          : state.inputs.days_to_close * CLOSE_AUTOMATION_RATE;
       const hoursSaved =
         state.inputs.manual_work_hours === null || state.inputs.finance_fte === null
           ? null
-          : state.inputs.manual_work_hours * 0.65 * state.inputs.finance_fte;
-      const hasAnnualSavingsInputs =
-        inputs.yearly_inhouse_cost.value.trim() !== "" ||
-        inputs.yearly_outsourced_cost.value.trim() !== "";
-      const annualNetSavings =
-        !hasAnnualSavingsInputs ||
-        state.inputs.yearly_inhouse_cost === null ||
-        state.inputs.finance_fte === null ||
-        state.inputs.yearly_outsourced_cost === null
+          : state.inputs.manual_work_hours * CLOSE_AUTOMATION_RATE * state.inputs.finance_fte;
+      const hasInHouseCostInput = inputs.yearly_inhouse_cost.value.trim() !== "";
+      const hasOutsourcedCostInput = inputs.yearly_outsourced_cost.value.trim() !== "";
+      const hasAnnualSavingsInputs = hasInHouseCostInput || hasOutsourcedCostInput;
+      const currentAnnualLaborCost =
+        state.inputs.yearly_inhouse_cost === null || state.inputs.finance_fte === null
           ? null
-          : (
-              (state.inputs.yearly_inhouse_cost * state.inputs.finance_fte) +
-              state.inputs.yearly_outsourced_cost
-            ) * 0.6;
-      const laborSavings = null;
-      const netSavings = null;
-      const roiPercentAnnual = null;
-      const paybackMonths = null;
+          : state.inputs.yearly_inhouse_cost * state.inputs.finance_fte;
+      const recoveredCapacityValue =
+        hoursSaved === null || state.inputs.yearly_inhouse_cost === null
+          ? null
+          : (hoursSaved * 12 * state.inputs.yearly_inhouse_cost) / HOURS_PER_FTE_YEAR;
+      const laborSavings =
+        !hasInHouseCostInput || currentAnnualLaborCost === null || recoveredCapacityValue === null
+          ? null
+          : Math.min(currentAnnualLaborCost * SAVINGS_CAPTURE_RATE, recoveredCapacityValue);
+      const netSavings =
+        !hasOutsourcedCostInput || state.inputs.yearly_outsourced_cost === null
+          ? null
+          : state.inputs.yearly_outsourced_cost * SAVINGS_CAPTURE_RATE;
+      const financeCapacityUnlocked = laborSavings;
+      const annualNetSavings =
+        !hasAnnualSavingsInputs
+          ? null
+          : (laborSavings || 0) + (netSavings || 0);
+      const currentAnnualSpend =
+        !hasAnnualSavingsInputs
+          ? null
+          : (hasInHouseCostInput && currentAnnualLaborCost !== null ? currentAnnualLaborCost : 0) +
+            (hasOutsourcedCostInput && state.inputs.yearly_outsourced_cost !== null ? state.inputs.yearly_outsourced_cost : 0);
+      const roiPercentAnnual =
+        currentAnnualSpend !== null && currentAnnualSpend > 0 && annualNetSavings !== null
+          ? annualNetSavings / currentAnnualSpend
+          : null;
 
       state.outputs = {
         days_close_eliminated: daysCloseEliminated,
         hours_saved_monthly: hoursSaved,
         labor_savings_monthly: laborSavings,
         net_savings_monthly: netSavings,
+        finance_capacity_unlocked: financeCapacityUnlocked,
         annual_net_savings: annualNetSavings,
         roi_percent_annual: roiPercentAnnual,
-        payback_months: paybackMonths,
       };
 
       renderOutputs(state.outputs);
@@ -946,7 +965,7 @@ SETUP NOTES:
             key === "labor_savings_monthly" ||
             key === "net_savings_monthly" ||
             key === "annual_net_savings" ||
-            key === "annual_net_savings_detail"
+            key === "finance_capacity_unlocked"
           ) {
             setOutputValue(outputEls[key], "$--", true);
             return;
@@ -983,9 +1002,9 @@ SETUP NOTES:
         outputs.annual_net_savings === null
       );
       setOutputValue(
-        outputEls.annual_net_savings_detail,
-        outputs.annual_net_savings === null ? "$--" : formatCurrency(outputs.annual_net_savings),
-        outputs.annual_net_savings === null
+        outputEls.finance_capacity_unlocked,
+        outputs.finance_capacity_unlocked === null ? "$--" : formatCurrency(outputs.finance_capacity_unlocked),
+        outputs.finance_capacity_unlocked === null
       );
 
       updateHiddenFields();
@@ -1008,7 +1027,6 @@ SETUP NOTES:
         [HS_FIELDS.hoursSavedMonthly]: serializeFieldValue(state.outputs.hours_saved_monthly),
         [HS_FIELDS.annualNetSavings]: serializeFieldValue(state.outputs.annual_net_savings),
         [HS_FIELDS.roiPercent]: serializeFieldValue(state.outputs.roi_percent_annual),
-        [HS_FIELDS.paybackMonths]: serializeFieldValue(state.outputs.payback_months, "No payback"),
         ...inputFields,
         [HS_FIELDS.inputsJson]: JSON.stringify({
           inputs: state.inputs,

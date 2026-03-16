@@ -29,9 +29,12 @@ Open `new_calculator.html` in a browser. It runs entirely client-side.
 ### Calculation Notes (Current State)
 - Days of Close Eliminated = `days_to_close * 0.65`
 - Manual Reconciliation Hours Saved = `manual_work_hours * 0.65 * finance_fte`
-- Estimated Annual Net Savings = `((yearly_inhouse_cost * finance_fte) + yearly_outsourced_cost) * 0.6`
-- Blank `yearly_inhouse_cost` and `yearly_outsourced_cost` are treated as `0`; blank `finance_fte` defaults to `1`
-- Other output formulas are placeholders and should be defined as the model is finalized.
+- Annual Labor Cost Savings = `min((yearly_inhouse_cost * finance_fte) * 0.6, (hours_saved_monthly * 12 * yearly_inhouse_cost) / 2080)`
+- Outsourced Cost Savings = `yearly_outsourced_cost * 0.6`
+- Finance Capacity Unlocked = `annual_labor_cost_savings`
+- Estimated Annual Net Savings = `annual_labor_cost_savings + outsourced_cost_savings`
+- ROI % = `annual_net_savings / current_annual_finance_spend`
+- Blank `yearly_inhouse_cost` and `yearly_outsourced_cost` stay as placeholders until entered; blank `finance_fte` defaults to `1`
 
 ## HubSpot Form
 The form is embedded in a modal that opens when the user clicks **Get my ROI report**.  
